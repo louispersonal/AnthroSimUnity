@@ -28,13 +28,19 @@ public class MapGenerator : MonoBehaviour
     LandwaterAtlas _landwaterAtlas;
     LandwaterAtlas LandwaterAtlas { get { if (_landwaterAtlas == null) { _landwaterAtlas = FindObjectOfType<LandwaterAtlas>(); } return _landwaterAtlas; } set { _landwaterAtlas = value; } }
 
+    GeoFeatureAtlas _geoFeatureAtlas;
+    GeoFeatureAtlas GeoFeatureAtlas { get { if (_geoFeatureAtlas == null) { _geoFeatureAtlas = FindObjectOfType<GeoFeatureAtlas>(); } return _geoFeatureAtlas; } set { _geoFeatureAtlas = value; } }
+
     void Start()
     {
         _map.InitializeMap(_mapWidth, _mapHeight);
         int startOffset = _mapWidth / 5;
         Rectangle bounds = new Rectangle(startOffset, _map.GetLength(0) - startOffset, startOffset, _map.GetLength(1) - startOffset);
         _map = CreateContinent(_map, bounds);
-        _map = AddMountainRange(_map, bounds);
+        for (int i = 0; i < 5; i++)
+        {
+            _map = AddMountainRange(_map, bounds);
+        }
         CreateSpriteFromMap(_map);
     }
 
@@ -250,11 +256,13 @@ public class MapGenerator : MonoBehaviour
         MapDataPoint point = map.MapData.Data[peakLocation.x, peakLocation.y];
         point.Height = 1f;
         point.GeoFeatureType = GeoFeatureType.Mountain;
-        AddParabolicPeak(map, peakLocation, mountainRadius);
+        int mountainID = GeoFeatureAtlas.GetAvailableMountainID();
+        point.GeoFeatureID = mountainID;
+        FormMountain(map, peakLocation, mountainRadius, mountainID);
         return map;
     }
 
-    public static void AddParabolicPeak(Map map, Vector2Int peakLocation, int mountainRadius, float minHeight = 0.5f, float maxHeight = 1.0f)
+    void FormMountain(Map map, Vector2Int peakLocation, int mountainRadius, int mountainID, float minHeight = 0.5f, float maxHeight = 1.0f)
     {
         // Coefficients for controlling the spread of the parabola
         float a = 1.0f, b = 1.0f;
@@ -262,7 +270,7 @@ public class MapGenerator : MonoBehaviour
         // Iterate over every element in the 2D array
         for (int y = peakLocation.y - mountainRadius; y < peakLocation.y + mountainRadius; y++)
         {
-            for (int x = peakLocation.x - mountainRadius; x < peakLocation.x - mountainRadius; x++)
+            for (int x = peakLocation.x - mountainRadius; x < peakLocation.x + mountainRadius; x++)
             {
                 // Calculate the distance from the center of the peak
                 float dx = ((float)x - (float)peakLocation.x);
@@ -275,12 +283,14 @@ public class MapGenerator : MonoBehaviour
                 value = Mathf.Max(minHeight, Mathf.Min(maxHeight, value));
 
                 // Add this peak value to the array
-                map.MapData.Data[y, x].Height = value;
+                map.MapData.Data[x, y].Height = value;
+                map.MapData.Data[x, y].GeoFeatureType = GeoFeatureType.Mountain;
+                map.MapData.Data[x, y].GeoFeatureID = mountainID;
             }
         }
     }
 
-        Vector2Int FindMountainPeak(Map map, Rectangle continentBounds, int mountainRadius)
+    Vector2Int FindMountainPeak(Map map, Rectangle continentBounds, int mountainRadius)
     {
         bool spaceForMountain = false;
         Vector2Int randomPoint;
@@ -295,9 +305,21 @@ public class MapGenerator : MonoBehaviour
 
     bool CheckSpaceForMountain(Map map, Vector2Int peakLocation, int mountainRadius)
     {
-        return map.MapData.Data[peakLocation.x + mountainRadius, peakLocation.y].LandWaterType == LandWaterType.Continent
+        bool roomOnLand =  map.MapData.Data[peakLocation.x + mountainRadius, peakLocation.y].LandWaterType == LandWaterType.Continent
             && map.MapData.Data[peakLocation.x - mountainRadius, peakLocation.y].LandWaterType == LandWaterType.Continent
             && map.MapData.Data[peakLocation.x, peakLocation.y + mountainRadius].LandWaterType == LandWaterType.Continent
             && map.MapData.Data[peakLocation.x, peakLocation.y - mountainRadius].LandWaterType == LandWaterType.Continent;
+
+        bool noConflictingMountain = map.MapData.Data[peakLocation.x + mountainRadius, peakLocation.y].GeoFeatureType == GeoFeatureType.None
+            && map.MapData.Data[peakLocation.x - mountainRadius, peakLocation.y].GeoFeatureType == GeoFeatureType.None
+            && map.MapData.Data[peakLocation.x, peakLocation.y + mountainRadius].GeoFeatureType == GeoFeatureType.None
+            && map.MapData.Data[peakLocation.x, peakLocation.y - mountainRadius].GeoFeatureType == GeoFeatureType.None;
+
+        return roomOnLand && noConflictingMountain;
+    }
+
+    void AddRiver()
+    {
+
     }
 }

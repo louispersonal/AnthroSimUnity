@@ -7,7 +7,14 @@ public class CameraCtrl : MonoBehaviour
     [SerializeField]
     float _cameraSpeed;
 
-    Vector3 _input;
+    [SerializeField]
+    float _zoomSpeed;
+
+    Vector3 _horiVertiInput;
+
+    float _scrollInput;
+
+    bool _fixedUpdateComplete = false;
 
     // Start is called before the first frame update
     void Start()
@@ -18,14 +25,21 @@ public class CameraCtrl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        _input.x = Input.GetAxisRaw("Horizontal");
-        _input.y = Input.GetAxisRaw("Vertical");
+        if (_fixedUpdateComplete)
+        {
+            _horiVertiInput.x = Input.GetAxisRaw("Horizontal");
+            _horiVertiInput.y = Input.GetAxisRaw("Vertical");
+            _scrollInput = Input.GetAxis("Mouse ScrollWheel");
+            _fixedUpdateComplete = false;
+        }
     }
 
     private void FixedUpdate()
     {
         Vector3 currentCameraPosition = gameObject.transform.position;
-        currentCameraPosition += _input * _cameraSpeed;
+        currentCameraPosition += _horiVertiInput * _cameraSpeed;
+        currentCameraPosition.z += _scrollInput * _zoomSpeed;
         gameObject.transform.position = currentCameraPosition;
+        _fixedUpdateComplete = true;
     }
 }
