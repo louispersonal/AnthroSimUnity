@@ -1,29 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using UnityEditor.Timeline;
 using UnityEngine;
 using Color = UnityEngine.Color;
 
 public class MapGenerator : MonoBehaviour
 {
     [SerializeField]
-    Map _map;
+    int _minimumMountainRadius;
 
     [SerializeField]
-    int _mapWidth;
+    int _maximumMountainRadius;
 
     [SerializeField]
-    int _mapHeight;
+    int _maxMountainsPerRange;
 
     [SerializeField]
-    [Tooltip("Refers to the number of pixels per world unit")]
-    float _mapResolution;
-
-    [SerializeField]
-    int _minimumMountainRange;
-
-    [SerializeField]
-    int _maximumMountainRange;
+    float _chanceOfRiverSourceOnMountain;
 
     LandwaterAtlas _landwaterAtlas;
     LandwaterAtlas LandwaterAtlas { get { if (_landwaterAtlas == null) { _landwaterAtlas = FindObjectOfType<LandwaterAtlas>(); } return _landwaterAtlas; } set { _landwaterAtlas = value; } }
@@ -33,25 +27,37 @@ public class MapGenerator : MonoBehaviour
 
     void Start()
     {
-        _map.InitializeMap(_mapWidth, _mapHeight);
-        int startOffset = _mapWidth / 5;
-        Rectangle bounds = new Rectangle(startOffset, _map.GetLength(0) - startOffset, startOffset, _map.GetLength(1) - startOffset);
-        _map = CreateContinent(_map, bounds);
-        for (int i = 0; i < 5; i++)
-        {
-            _map = AddMountainRange(_map, bounds);
-        }
-        CreateSpriteFromMap(_map);
+
     }
 
-    Map CreateContinent(Map map, Rectangle bounds)
+    public void GenerateMap(Map map, int width, int height, float mapResolution, int numContinents)
+    {
+        map.InitializeMap(width, height);
+        for (int c = 0; c < numContinents; c++)
+        {
+            Rectangle bounds = GetContinentBounds(map);
+            CreateContinent(map, bounds);
+            for (int m = 0; m < 5; m++)
+            {
+                AddMountainRange(map, bounds);
+            }
+        }
+        CreateSpriteFromMap(map, mapResolution);
+    }
+
+    public Rectangle GetContinentBounds(Map map)
+    {
+        int startOffset = map.GetLength(0) / 5;
+        return new Rectangle(startOffset, map.GetLength(0) - startOffset, startOffset, map.GetLength(1) - startOffset);
+    }
+
+    void CreateContinent(Map map, Rectangle bounds)
     {
         int continentID = LandwaterAtlas.GetAvailableContinentID();
         Vector2 startPoint = new Vector2(bounds.X_lo, bounds.Y_lo);
-        map = GenerateOutline(map, bounds, startPoint, continentID);
+        GenerateOutline(map, bounds, startPoint, continentID);
         Vector2 containingPoint = FindContainingPoint(bounds);
         map = FloodFill(map, containingPoint, continentID);
-        return map;
     }
 
     Vector2 FindContainingPoint(Rectangle bounds)
@@ -59,7 +65,7 @@ public class MapGenerator : MonoBehaviour
         return new Vector2(((bounds.X_hi - bounds.X_lo) / 2) + bounds.X_lo, ((bounds.Y_hi - bounds.Y_lo) / 2) + bounds.Y_lo);
     }
 
-    Map GenerateOutline(Map map, Rectangle bounds, Vector2 startPoint, int continentID)
+    void GenerateOutline(Map map, Rectangle bounds, Vector2 startPoint, int continentID)
     {
         // assume start point is the bottom left corner (lo x, lo y)
         // initial general direction will be +x
@@ -139,9 +145,6 @@ public class MapGenerator : MonoBehaviour
                 map.MapData.Data[x, y].LandWaterFeatureID = continentID;
             }
         }
-
-
-        return map;
     }
 
     Vector2 RotateVectorRandomly(Vector2 vector)
@@ -208,7 +211,7 @@ public class MapGenerator : MonoBehaviour
         return map;
     }
 
-    void CreateSpriteFromMap(Map map)
+    void CreateSpriteFromMap(Map map, float mapResolution)
     {
         // Create a new Texture2D
         Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
@@ -218,8 +221,16 @@ public class MapGenerator : MonoBehaviour
         {
             for (int x = 0; x < map.GetLength(0); x++)
             {
-                float value = map.GetHeight(x, y); // Assuming your values are in the range 0-255
-                Color color = new Color(value, value, value); // Create a grayscale color
+                Color color;
+                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Ocean || map.MapData.Data[x, y].LandWaterType == LandWaterType.River)
+                {
+                    color = new Color(0, 0.3f, 0.7f);
+                }
+                else
+                {
+                    float value = map.GetHeight(x, y);
+                    color = new Color(0, value, 0);
+                }
                 texture.SetPixel(x, y, color);
             }
         }
@@ -227,7 +238,7 @@ public class MapGenerator : MonoBehaviour
         // Apply all SetPixel calls
         texture.Apply();
         // Specify the pixels per unit (e.g., 5000 if you want it to appear larger or 50 if you want it smaller)
-        float pixelsPerUnit = _mapResolution;
+        float pixelsPerUnit = mapResolution;
         // Create a new sprite
         Sprite sprite = Sprite.Create(texture, new Rect(0, 0, map.GetLength(0), map.GetLength(1)), new Vector2(0.5f, 0.5f), pixelsPerUnit);
 
@@ -236,22 +247,23 @@ public class MapGenerator : MonoBehaviour
         spriteRenderer.sprite = sprite;
     }
 
-    Map AddMountainRange(Map map, Rectangle continentBounds)
+    void AddMountainRange(Map map, Rectangle continentBounds)
     {
-        int mountainRadius = Random.Range(_minimumMountainRange, _maximumMountainRange);
+        int mountainRadius = Random.Range(_minimumMountainRadius, _maximumMountainRadius);
         Vector2Int firstMountainPeak = FindMountainPeak(map, continentBounds, mountainRadius);
-        map = AddMountain(map, firstMountainPeak,  mountainRadius);
-        Vector2 rangeDirection = new Vector2(Random.Range(0f, 1f), Random.Range(0f, 1f));
+        int numMountains = 1;
+        AddMountain(map, firstMountainPeak,  mountainRadius);
+        Vector2 rangeDirection = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f));
         rangeDirection = rangeDirection.normalized;
-        while (CheckSpaceForMountain(map, firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2))), mountainRadius))
+        while (CheckSpaceForMountain(map, firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2))), mountainRadius) && numMountains < _maxMountainsPerRange)
         {
-            map = AddMountain(map, firstMountainPeak, mountainRadius);
+            AddMountain(map, firstMountainPeak, mountainRadius);
+            numMountains++;
             firstMountainPeak = firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2)));
         }
-        return map;
     }
 
-    Map AddMountain(Map map, Vector2Int peakLocation, int mountainRadius)
+    void AddMountain(Map map, Vector2Int peakLocation, int mountainRadius)
     {
         MapDataPoint point = map.MapData.Data[peakLocation.x, peakLocation.y];
         point.Height = 1f;
@@ -259,7 +271,10 @@ public class MapGenerator : MonoBehaviour
         int mountainID = GeoFeatureAtlas.GetAvailableMountainID();
         point.GeoFeatureID = mountainID;
         FormMountain(map, peakLocation, mountainRadius, mountainID);
-        return map;
+        if (Random.Range(0f, 1f) < _chanceOfRiverSourceOnMountain)
+        {
+            AddRiver(map, peakLocation);
+        }
     }
 
     void FormMountain(Map map, Vector2Int peakLocation, int mountainRadius, int mountainID, float minHeight = 0.5f, float maxHeight = 1.0f)
@@ -318,8 +333,68 @@ public class MapGenerator : MonoBehaviour
         return roomOnLand && noConflictingMountain;
     }
 
-    void AddRiver()
+    void AddRiver(Map map, Vector2Int sourceLocation)
     {
+        Vector2Int riverEndLocation = FindClosestCoastline(map, sourceLocation);
+        //int maxRiverWidth = 100;
+        map.MapData.Data[sourceLocation.x, sourceLocation.y].LandWaterType = LandWaterType.River;
+        int riverID = LandwaterAtlas.GetAvailableRiverID();
+        map.MapData.Data[sourceLocation.x, sourceLocation.y].LandWaterFeatureID = riverID;
+        Vector2Int currentPosition = sourceLocation;
+        while (currentPosition != riverEndLocation)
+        {
+            if (Random.Range(0, 2) == 0) // Move horizontally
+            {
+                if (currentPosition.x < riverEndLocation.x)
+                {
+                    currentPosition.x++;
+                }
+                else if (currentPosition.x > riverEndLocation.x)
+                {
+                    currentPosition.x--;
+                }
+            }
+            else // Move vertically
+            {
+                if (currentPosition.y < riverEndLocation.y)
+                {
+                    currentPosition.y++;
+                }
+                else if (currentPosition.y > riverEndLocation.y)
+                {
+                    currentPosition.y--;
+                }
+            }
+            map.MapData.Data[currentPosition.x, currentPosition.y].LandWaterType = LandWaterType.River;
+            map.MapData.Data[currentPosition.x, currentPosition.y].LandWaterFeatureID = riverID;
+        }
+    }
 
+    Vector2Int FindClosestCoastline(Map map, Vector2Int point)
+    {
+        float maxSearchDistance = 499f;
+        Vector2Int currentClosestPoint = new Vector2Int(0, 0);
+        Vector2Int currentPoint = new Vector2Int(0, 0);
+        for (float angle = 0f; angle < 2 * Mathf.PI; angle += Mathf.PI / 6)
+        {
+            for(float range = 0f; range < maxSearchDistance; range++)
+            {
+                currentPoint.x = point.x + (int)(range * Mathf.Cos(angle));
+                currentPoint.y = point.y + (int)(range * Mathf.Sin(angle));
+                if (currentPoint.x < map.GetLength(0) && currentPoint.x >= 0 && currentPoint.y < map.GetLength(1) && currentPoint.y >= 0)
+                {
+                    if (map.MapData.Data[currentPoint.x, currentPoint.y].LandWaterType == LandWaterType.Ocean)
+                    {
+                        float distanceToCurrent = Vector2Int.Distance(point, currentPoint);
+                        float distanceToClosest = Vector2Int.Distance(point, currentClosestPoint);
+                        if (distanceToCurrent < distanceToClosest)
+                        {
+                            currentClosestPoint = currentPoint;
+                        }
+                    }
+                }
+            }
+        }
+        return currentClosestPoint;
     }
 }

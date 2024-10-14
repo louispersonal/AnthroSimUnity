@@ -41,7 +41,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3961313225806381755}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f37aab178075ce54da8aca7d1649414a, type: 3}
+  m_Script: {fileID: 11500000, guid: eb33137d2478dd7458cb91715e8a847c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   sounds: []
@@ -119,7 +119,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7491251320797221696}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2d3ce228bc9232479c9993aa607db49, type: 3}
+  m_Script: {fileID: 11500000, guid: fb69b3d5134a77c4bb670fb48dda4ac0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _audioManager: {fileID: 7118425128386455031}
