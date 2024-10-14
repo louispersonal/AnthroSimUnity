@@ -397,4 +397,24 @@ public class MapGenerator : MonoBehaviour
         }
         return currentClosestPoint;
     }
+
+    int[] OneDimensionalMidpointDisplacement(int size, int maxDisplacement)
+    {
+        int[] output = new int[size];
+        int displacement = maxDisplacement;
+        int step_size = size - 1;
+        while (step_size > 1)
+        {
+            for (int x = 0; x < size / step_size; x++)
+            {
+                output[(x * step_size) + step_size / 2] = ((output[x*step_size] + output[(x*step_size) + step_size]) / 2) + Random.Range(-displacement, displacement);
+            }
+            if (displacement > 0)
+            {
+                displacement--;
+            }
+            step_size /= 2;
+        }
+        return output;
+    }
 }
