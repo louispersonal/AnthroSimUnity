@@ -270,7 +270,8 @@ public class MapGenerator : MonoBehaviour
         point.GeoFeatureType = GeoFeatureType.Mountain;
         int mountainID = GeoFeatureAtlas.GetAvailableMountainID();
         point.GeoFeatureID = mountainID;
-        FormMountain(map, peakLocation, mountainRadius, mountainID);
+        TwoDimensionalMidpointDisplacement(map, 1f, peakLocation, mountainRadius, mountainID);
+        //FormMountain(map, peakLocation, mountainRadius, mountainID);
         if (Random.Range(0f, 1f) < _chanceOfRiverSourceOnMountain)
         {
             AddRiver(map, peakLocation);
@@ -416,5 +417,90 @@ public class MapGenerator : MonoBehaviour
             step_size /= 2;
         }
         return output;
+    }
+
+    public void TwoDimensionalMidpointDisplacement(Map map, float roughness, Vector2Int peakLocation, int mountainRadius, int mountainID)
+    {
+        int size = mountainRadius - 1;
+        int stepSize = size - 1; // Step size between points
+
+        while (stepSize > 1)
+        {
+            int halfStep = stepSize / 2;
+
+            // Diamond step
+            for (int x = peakLocation.x - mountainRadius; x < size - 1; x += stepSize)
+            {
+                for (int y = peakLocation.y - mountainRadius; y < size - 1; y += stepSize)
+                {
+                    DiamondStep(map, x, y, stepSize, roughness);
+                }
+            }
+
+            // Square step
+            for (int x = peakLocation.x - mountainRadius; x < size - 1; x += halfStep)
+            {
+                for (int y = (x + halfStep) % stepSize; y < size - 1; y += stepSize)
+                {
+                    SquareStep(map, x, y, halfStep, roughness);
+                }
+            }
+
+            // Reduce the roughness for the next iteration
+            roughness *= 0.5f;
+
+            // Halve the step size
+            stepSize /= 2;
+        }
+    }
+
+    private void DiamondStep(Map map, int x, int y, int stepSize, float roughness)
+    {
+        int halfStep = stepSize / 2;
+        float avg = (map.MapData.Data[x, y].Height +
+                     map.MapData.Data[x + stepSize, y].Height +
+                     map.MapData.Data[x, y + stepSize].Height +
+                     map.MapData.Data[x + stepSize, y + stepSize].Height) / 4.0f;
+
+        map.MapData.Data[x + halfStep, y + halfStep].Height = avg + RandomOffset(roughness);
+    }
+
+    private void SquareStep(Map map, int x, int y, int stepSize, float roughness)
+    {
+        int halfStep = stepSize / 2;
+        int size = map.GetLength(0);
+
+        float avg = 0f;
+        int count = 0;
+
+        if (x - halfStep >= 0)
+        {
+            avg += map.MapData.Data[x - halfStep, y].Height;
+            count++;
+        }
+        if (x + halfStep < size)
+        {
+            avg += map.MapData.Data[x + halfStep, y].Height;
+            count++;
+        }
+        if (y - halfStep >= 0)
+        {
+            avg += map.MapData.Data[x, y - halfStep].Height;
+            count++;
+        }
+        if (y + halfStep < size)
+        {
+            avg += map.MapData.Data[x, y + halfStep].Height;
+            count++;
+        }
+
+        avg /= count;
+
+        map.MapData.Data[x, y].Height = avg + RandomOffset(roughness);
+    }
+
+    private float RandomOffset(float roughness)
+    {
+        return (Random.Range(0f, 1f) * 2f - 1f) * roughness;
     }
 }
