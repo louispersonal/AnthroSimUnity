@@ -840,7 +840,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _minimumMountainRadius: 13
   _maximumMountainRadius: 13
-  _maxMountainsPerRange: 1
+  _maxMountainsPerRange: 5
   _chanceOfRiverSourceOnMountain: 0.2
 --- !u!1 &2041137828
 GameObject:

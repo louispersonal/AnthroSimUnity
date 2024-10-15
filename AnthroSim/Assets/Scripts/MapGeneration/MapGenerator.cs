@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using UnityEditor.Timeline;
 using UnityEngine;
+using UnityEngine.UIElements;
+using static UnityEngine.Rendering.DebugUI;
 using Color = UnityEngine.Color;
 
 public class MapGenerator : MonoBehaviour
@@ -37,10 +39,6 @@ public class MapGenerator : MonoBehaviour
         {
             Rectangle bounds = GetContinentBounds(map);
             CreateContinent(map, bounds);
-            for (int m = 0; m < 5; m++)
-            {
-                AddMountainRange(map, bounds);
-            }
         }
         CreateSpriteFromMap(map, mapResolution);
     }
@@ -57,7 +55,48 @@ public class MapGenerator : MonoBehaviour
         Vector2 startPoint = new Vector2(bounds.X_lo, bounds.Y_lo);
         GenerateOutline(map, bounds, startPoint, continentID);
         Vector2 containingPoint = FindContainingPoint(bounds);
-        map = FloodFill(map, containingPoint, continentID);
+        FloodFill(map, containingPoint, continentID);
+        AddPerlinNoise(map);
+
+        for (int m = 0; m < 10; m++)
+        {
+            AddMountainRange(map, bounds);
+        }
+
+        for (int x = bounds.X_lo; x < bounds.X_hi; x++)
+        {
+            for (int y = bounds.Y_lo; y < bounds.Y_hi; y++)
+            {
+                map.MapData.Data[x,y].WaterProximity = ComputeWaterProximity(map, x, y);
+                map.MapData.Data[x, y].Temperature = ComputeTemperature(map, x, y);
+                map.MapData.Data[x, y].LowVegetation = ComputeLowVegetation(map, x, y);
+                map.MapData.Data[x, y].HighVegetation = ComputeHighVegetation(map, x, y);
+            }
+        }
+    }
+
+    void AddPerlinNoise(Map map)
+    {
+        int width = map.GetLength(0);
+        int height = map.GetLength(1);
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                float displacement = CalculateHeight(x, y, width, height) * 0.2f;
+                map.MapData.Data[x, y].Height += displacement;
+            }
+        }
+
+    }
+    float CalculateHeight(int x, int y, int width, int height)
+    {
+        float scale = 20f;
+        float xCoord = (float)x / width * scale;
+        float yCoord = (float)y / height * scale;
+
+        return Mathf.PerlinNoise(xCoord, yCoord);
     }
 
     Vector2 FindContainingPoint(Rectangle bounds)
@@ -173,7 +212,7 @@ public class MapGenerator : MonoBehaviour
         return true;
     }
 
-    Map FloodFill(Map map, Vector2 containintPoint, int continentID)
+    void FloodFill(Map map, Vector2 containintPoint, int continentID)
     {
         // Get the dimensions of the grid
         int rows = map.GetLength(0);
@@ -181,12 +220,6 @@ public class MapGenerator : MonoBehaviour
 
         int startX = (int)containintPoint.x;
         int startY = (int)containintPoint.y;
-
-        // If the starting point is not valid (already 1 or out of bounds), return
-        if (startX < 0 || startX >= rows || startY < 0 || startY >= cols || map.GetHeight(startX, startY) != 0)
-        {
-            return map;
-        }
 
         // Use a stack to simulate the recursion
         Stack<(int x, int y)> stack = new Stack<(int x, int y)>();
@@ -208,7 +241,6 @@ public class MapGenerator : MonoBehaviour
             if (y + 1 < cols && map.GetHeight(x, y + 1) == 0) stack.Push((x, y + 1));  // Right
             if (y - 1 >= 0 && map.GetHeight(x, y - 1) == 0) stack.Push((x, y - 1));    // Left
         }
-        return map;
     }
 
     void CreateSpriteFromMap(Map map, float mapResolution)
@@ -228,8 +260,12 @@ public class MapGenerator : MonoBehaviour
                 }
                 else
                 {
-                    float value = map.GetHeight(x, y);
-                    color = new Color(0, value, 0);
+                    color = new Color(0.76f, 1f, 0.6f);
+                    if (map.MapData.Data[x,y].LowVegetation > 0f)
+                    {
+                        float value = map.MapData.Data[x, y].LowVegetation;
+                        color = new Color(0, value, 0);
+                    }
                 }
                 texture.SetPixel(x, y, color);
             }
@@ -270,15 +306,14 @@ public class MapGenerator : MonoBehaviour
         point.GeoFeatureType = GeoFeatureType.Mountain;
         int mountainID = GeoFeatureAtlas.GetAvailableMountainID();
         point.GeoFeatureID = mountainID;
-        //FormMountain(map, peakLocation, mountainRadius, mountainID);
-        DiamondSquareAlgorithm(map, peakLocation, 5, 1f);
+        FormMountain(map, peakLocation, mountainRadius, mountainID, 1f);
         if (Random.Range(0f, 1f) < _chanceOfRiverSourceOnMountain)
         {
             AddRiver(map, peakLocation);
         }
     }
 
-    void FormMountain(Map map, Vector2Int peakLocation, int mountainRadius, int mountainID, float minHeight = 0.5f, float maxHeight = 1.0f)
+    void FormMountain(Map map, Vector2Int peakLocation, int mountainRadius, int mountainID, float peakHeight)
     {
         // Coefficients for controlling the spread of the parabola
         float a = 1.0f, b = 1.0f;
@@ -293,10 +328,10 @@ public class MapGenerator : MonoBehaviour
                 float dy = ((float)y - (float)peakLocation.y);
 
                 // Apply the parabolic formula
-                float value = maxHeight - ((a * dx * dx + b * dy * dy) / (mountainRadius * mountainRadius));
+                float value = peakHeight - ((a * dx * dx + b * dy * dy) / (mountainRadius * mountainRadius));
 
                 // Clamp the value between minHeight and maxHeight
-                value = Mathf.Max(minHeight, Mathf.Min(maxHeight, value));
+                value = Mathf.Max(map.MapData.Data[x, y].Height, Mathf.Min(peakHeight, value));
 
                 // Add this peak value to the array
                 map.MapData.Data[x, y].Height = value;
@@ -419,87 +454,60 @@ public class MapGenerator : MonoBehaviour
         return output;
     }
 
-    public void DiamondSquareAlgorithm(Map map, Vector2Int peakLocation, int mountainRadiusCoefficient, float peakHeight)
+    float ComputeWaterProximity(Map map, int x, int y)
     {
-        int mountainDiameter = (int)Mathf.Pow(2, mountainRadiusCoefficient) + 1;
-        int step_size = mountainDiameter - 1;
-        bool first_step = true;
-        float displacement = 0.1f;
-
-        while (step_size > 1)
+        int maxSearchDistance = 10;
+        for (int dx = -maxSearchDistance; dx <= maxSearchDistance; dx++)
         {
-            int half_step = step_size / 2;
-
-            // Diamond Step
-            for (int x = 0; x < mountainDiameter - 1; x += step_size)
+            for (int dy = -maxSearchDistance; dy <= maxSearchDistance; dy++)
             {
-                for (int y = 0; y < mountainDiameter - 1; y += step_size)
+                if (map.MapData.Data[x + dx, y + dy].LandWaterType != LandWaterType.Continent)
                 {
-                    if (first_step)
-                    {
-                        first_step = false;
-                    }
-                    else
-                    {
-                        DiamondStep(map, peakLocation.x - ((mountainDiameter - 1) / 2) + x, peakLocation.y - ((mountainDiameter - 1) / 2) + y, step_size, displacement);
-                    }
+                    return 1f;
                 }
             }
-
-            // Square Step
-            for (int x = 0; x < mountainDiameter - 1; x += half_step)
-            {
-                for (int y = (x + half_step) % step_size; y < mountainDiameter - 1; y += step_size)
-                {
-                    SquareStep(map, peakLocation.x - ((mountainDiameter - 1) / 2) + x, peakLocation.y - ((mountainDiameter - 1) / 2) + y, half_step, peakLocation, mountainDiameter, displacement);
-                }
-            }
-            step_size /= 2;
-            displacement /= 2;
         }
+        return 0f;
     }
 
-    private void DiamondStep(Map map, int x, int y, int stepSize, float displacement)
+    float ComputeTemperature(Map map, int x, int y)
     {
-        int halfStep = stepSize / 2;
-        float avg = (map.MapData.Data[x, y].Height +
-                     map.MapData.Data[x + stepSize, y].Height +
-                     map.MapData.Data[x, y + stepSize].Height +
-                     map.MapData.Data[x + stepSize, y + stepSize].Height) / 4.0f;
+        float maxTemperature = 40f;
+        float minTemperature = -20f;
+        int worldHeight = map.GetLength(1);
 
-        map.MapData.Data[x + halfStep, y + halfStep].Height = avg + Random.Range(-displacement, displacement);
+        float tempCurveCoefficient = (4 * (minTemperature - maxTemperature)) / (-1 * worldHeight * worldHeight);
+
+        float distanceFromEquator = Mathf.Abs((worldHeight / 2) - y);
+
+        return maxTemperature - (tempCurveCoefficient * distanceFromEquator * distanceFromEquator);
     }
 
-    private void SquareStep(Map map, int x, int y, int stepSize, Vector2Int peakLocation, int mountainDiameter, float displacement)
+    float ComputeLowVegetation(Map map, int x, int y)
     {
-        int halfStep = stepSize / 2;
+        // thrives in more extreme temperatures
+        float optimumTemperature = 20f;
+        float vegCurveCoefficient = 0.003f;
+        float currTemperature = map.MapData.Data[x, y].Temperature;
 
-        float avg = 0f;
-        int count = 0;
+        if (map.MapData.Data[x, y].WaterProximity > 0f)
+        {
+            return 1f - vegCurveCoefficient * Mathf.Pow(optimumTemperature - currTemperature, 2);
+        }
+        return 0f;
+    }
 
-        if (x - halfStep >= peakLocation.x - mountainDiameter)
-        {
-            avg += map.MapData.Data[x - halfStep, y].Height;
-            count++;
-        }
-        if (x + halfStep < peakLocation.x + mountainDiameter)
-        {
-            avg += map.MapData.Data[x + halfStep, y].Height;
-            count++;
-        }
-        if (y - halfStep >= peakLocation.y - mountainDiameter)
-        {
-            avg += map.MapData.Data[x, y - halfStep].Height;
-            count++;
-        }
-        if (y + halfStep < peakLocation.y + mountainDiameter)
-        {
-            avg += map.MapData.Data[x, y + halfStep].Height;
-            count++;
-        }
+    float ComputeHighVegetation(Map map, int x, int y)
+    {
+        // requires mild temperatures
+        float optimumTemperature = 20f;
+        float vegCurveCoefficient = 0.02f;
+        float currTemperature = map.MapData.Data[x, y].Temperature;
 
-        avg /= count;
-
-        map.MapData.Data[x, y].Height = avg + Random.Range(-displacement, displacement);
+        if (map.MapData.Data[x, y].WaterProximity > 0f)
+        {
+            return 1f - vegCurveCoefficient * Mathf.Pow(optimumTemperature - currTemperature, 2);
+        }
+        return 0f;
     }
 }
