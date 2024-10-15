@@ -838,9 +838,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d47e9f72df6ba3f4b973cda776610824, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _minimumMountainRadius: 10
-  _maximumMountainRadius: 20
-  _maxMountainsPerRange: 10
+  _minimumMountainRadius: 13
+  _maximumMountainRadius: 13
+  _maxMountainsPerRange: 1
   _chanceOfRiverSourceOnMountain: 0.2
 --- !u!1 &2041137828
 GameObject:

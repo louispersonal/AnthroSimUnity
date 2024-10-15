@@ -270,8 +270,8 @@ public class MapGenerator : MonoBehaviour
         point.GeoFeatureType = GeoFeatureType.Mountain;
         int mountainID = GeoFeatureAtlas.GetAvailableMountainID();
         point.GeoFeatureID = mountainID;
-        TwoDimensionalMidpointDisplacement(map, 1f, peakLocation, mountainRadius, mountainID);
         //FormMountain(map, peakLocation, mountainRadius, mountainID);
+        DiamondSquareAlgorithm(map, peakLocation, 5, 1f);
         if (Random.Range(0f, 1f) < _chanceOfRiverSourceOnMountain)
         {
             AddRiver(map, peakLocation);
@@ -419,42 +419,47 @@ public class MapGenerator : MonoBehaviour
         return output;
     }
 
-    public void TwoDimensionalMidpointDisplacement(Map map, float roughness, Vector2Int peakLocation, int mountainRadius, int mountainID)
+    public void DiamondSquareAlgorithm(Map map, Vector2Int peakLocation, int mountainRadiusCoefficient, float peakHeight)
     {
-        int size = mountainRadius - 1;
-        int stepSize = size - 1; // Step size between points
+        int mountainDiameter = (int)Mathf.Pow(2, mountainRadiusCoefficient) + 1;
+        int step_size = mountainDiameter - 1;
+        bool first_step = true;
+        float displacement = 0.1f;
 
-        while (stepSize > 1)
+        while (step_size > 1)
         {
-            int halfStep = stepSize / 2;
+            int half_step = step_size / 2;
 
-            // Diamond step
-            for (int x = peakLocation.x - mountainRadius; x < size - 1; x += stepSize)
+            // Diamond Step
+            for (int x = 0; x < mountainDiameter - 1; x += step_size)
             {
-                for (int y = peakLocation.y - mountainRadius; y < size - 1; y += stepSize)
+                for (int y = 0; y < mountainDiameter - 1; y += step_size)
                 {
-                    DiamondStep(map, x, y, stepSize, roughness);
+                    if (first_step)
+                    {
+                        first_step = false;
+                    }
+                    else
+                    {
+                        DiamondStep(map, peakLocation.x - ((mountainDiameter - 1) / 2) + x, peakLocation.y - ((mountainDiameter - 1) / 2) + y, step_size, displacement);
+                    }
                 }
             }
 
-            // Square step
-            for (int x = peakLocation.x - mountainRadius; x < size - 1; x += halfStep)
+            // Square Step
+            for (int x = 0; x < mountainDiameter - 1; x += half_step)
             {
-                for (int y = (x + halfStep) % stepSize; y < size - 1; y += stepSize)
+                for (int y = (x + half_step) % step_size; y < mountainDiameter - 1; y += step_size)
                 {
-                    SquareStep(map, x, y, halfStep, roughness);
+                    SquareStep(map, peakLocation.x - ((mountainDiameter - 1) / 2) + x, peakLocation.y - ((mountainDiameter - 1) / 2) + y, half_step, peakLocation, mountainDiameter, displacement);
                 }
             }
-
-            // Reduce the roughness for the next iteration
-            roughness *= 0.5f;
-
-            // Halve the step size
-            stepSize /= 2;
+            step_size /= 2;
+            displacement /= 2;
         }
     }
 
-    private void DiamondStep(Map map, int x, int y, int stepSize, float roughness)
+    private void DiamondStep(Map map, int x, int y, int stepSize, float displacement)
     {
         int halfStep = stepSize / 2;
         float avg = (map.MapData.Data[x, y].Height +
@@ -462,33 +467,32 @@ public class MapGenerator : MonoBehaviour
                      map.MapData.Data[x, y + stepSize].Height +
                      map.MapData.Data[x + stepSize, y + stepSize].Height) / 4.0f;
 
-        map.MapData.Data[x + halfStep, y + halfStep].Height = avg + RandomOffset(roughness);
+        map.MapData.Data[x + halfStep, y + halfStep].Height = avg + Random.Range(-displacement, displacement);
     }
 
-    private void SquareStep(Map map, int x, int y, int stepSize, float roughness)
+    private void SquareStep(Map map, int x, int y, int stepSize, Vector2Int peakLocation, int mountainDiameter, float displacement)
     {
         int halfStep = stepSize / 2;
-        int size = map.GetLength(0);
 
         float avg = 0f;
         int count = 0;
 
-        if (x - halfStep >= 0)
+        if (x - halfStep >= peakLocation.x - mountainDiameter)
         {
             avg += map.MapData.Data[x - halfStep, y].Height;
             count++;
         }
-        if (x + halfStep < size)
+        if (x + halfStep < peakLocation.x + mountainDiameter)
         {
             avg += map.MapData.Data[x + halfStep, y].Height;
             count++;
         }
-        if (y - halfStep >= 0)
+        if (y - halfStep >= peakLocation.y - mountainDiameter)
         {
             avg += map.MapData.Data[x, y - halfStep].Height;
             count++;
         }
-        if (y + halfStep < size)
+        if (y + halfStep < peakLocation.y + mountainDiameter)
         {
             avg += map.MapData.Data[x, y + halfStep].Height;
             count++;
@@ -496,11 +500,6 @@ public class MapGenerator : MonoBehaviour
 
         avg /= count;
 
-        map.MapData.Data[x, y].Height = avg + RandomOffset(roughness);
-    }
-
-    private float RandomOffset(float roughness)
-    {
-        return (Random.Range(0f, 1f) * 2f - 1f) * roughness;
+        map.MapData.Data[x, y].Height = avg + Random.Range(-displacement, displacement);
     }
 }
