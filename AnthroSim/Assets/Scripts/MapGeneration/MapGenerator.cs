@@ -27,6 +27,10 @@ public class MapGenerator : MonoBehaviour
     GeoFeatureAtlas _geoFeatureAtlas;
     GeoFeatureAtlas GeoFeatureAtlas { get { if (_geoFeatureAtlas == null) { _geoFeatureAtlas = FindObjectOfType<GeoFeatureAtlas>(); } return _geoFeatureAtlas; } set { _geoFeatureAtlas = value; } }
 
+    RandomVectorWalk _randomVectorWalk;
+
+    RandomVectorWalk RandomVectorWalk { get { if (_randomVectorWalk == null) { _randomVectorWalk = FindObjectOfType<RandomVectorWalk>(); } return _randomVectorWalk; } set { _randomVectorWalk = value; } }
+
     void Start()
     {
 
@@ -62,6 +66,9 @@ public class MapGenerator : MonoBehaviour
         {
             AddMountainRange(map, bounds);
         }
+
+
+        CloudPass(map);
 
         for (int x = bounds.X_lo; x < bounds.X_hi; x++)
         {
@@ -376,34 +383,20 @@ public class MapGenerator : MonoBehaviour
         map.MapData.Data[sourceLocation.x, sourceLocation.y].LandWaterType = LandWaterType.River;
         int riverID = LandwaterAtlas.GetAvailableRiverID();
         map.MapData.Data[sourceLocation.x, sourceLocation.y].LandWaterFeatureID = riverID;
-        Vector2Int currentPosition = sourceLocation;
-        while (currentPosition != riverEndLocation)
+
+        int numPoints = 20;
+        List<Vector2Int> points = new List<Vector2Int>();
+        for (int c = 0; c < numPoints; c++)
         {
-            if (Random.Range(0, 2) == 0) // Move horizontally
-            {
-                if (currentPosition.x < riverEndLocation.x)
-                {
-                    currentPosition.x++;
-                }
-                else if (currentPosition.x > riverEndLocation.x)
-                {
-                    currentPosition.x--;
-                }
-            }
-            else // Move vertically
-            {
-                if (currentPosition.y < riverEndLocation.y)
-                {
-                    currentPosition.y++;
-                }
-                else if (currentPosition.y > riverEndLocation.y)
-                {
-                    currentPosition.y--;
-                }
-            }
-            map.MapData.Data[currentPosition.x, currentPosition.y].LandWaterType = LandWaterType.River;
-            map.MapData.Data[currentPosition.x, currentPosition.y].LandWaterFeatureID = riverID;
+            points.Add(new Vector2Int(0, 0));
         }
+
+        points[0] = sourceLocation;
+        points[numPoints - 1] = riverEndLocation;
+
+        RandomVectorWalk.SubdivideRecursive(points, 0, numPoints - 1, 30f);
+
+        RandomVectorWalk.InterpolatePoints(map, points, riverID);
     }
 
     Vector2Int FindClosestCoastline(Map map, Vector2Int point)
@@ -434,24 +427,59 @@ public class MapGenerator : MonoBehaviour
         return currentClosestPoint;
     }
 
-    int[] OneDimensionalMidpointDisplacement(int size, int maxDisplacement)
+    void CloudPass(Map map)
     {
-        int[] output = new int[size];
-        int displacement = maxDisplacement;
-        int step_size = size - 1;
-        while (step_size > 1)
+        // Starting at the top of the map, going right, the cloud picks up water over water, and drops water over land
+        // cloud direction changes at 0.25x the map height and 0.75x the map height
+        float cloudWaterLevel = 1f;
+        for (int y = 0; y < map.GetLength(1) / 4; y++)
         {
-            for (int x = 0; x < size / step_size; x++)
+            cloudWaterLevel = 1f;
+            for (int x = 0; x < map.GetLength(0); x++)
             {
-                output[(x * step_size) + step_size / 2] = ((output[x*step_size] + output[(x*step_size) + step_size]) / 2) + Random.Range(-displacement, displacement);
+                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Continent && cloudWaterLevel > 0)
+                {
+                    map.MapData.Data[x, y].WaterProximity += 0.01f;
+                    cloudWaterLevel -= 0.01f;
+                }
+                else
+                {
+                    cloudWaterLevel += 0.01f;
+                }
             }
-            if (displacement > 0)
-            {
-                displacement--;
-            }
-            step_size /= 2;
         }
-        return output;
+        for (int y = map.GetLength(1) / 4; y < map.GetLength(1) * 3 / 4; y++)
+        {
+            cloudWaterLevel = 1f;
+            for (int x = map.GetLength(0) - 1; x >= 0; x--)
+            {
+                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Continent && cloudWaterLevel > 0)
+                {
+                    map.MapData.Data[x, y].WaterProximity += 0.01f;
+                    cloudWaterLevel -= 0.01f;
+                }
+                else
+                {
+                    cloudWaterLevel += 0.01f;
+                }
+            }
+        }
+        for (int y = map.GetLength(1) * 3 / 4; y < map.GetLength(1); y++)
+        {
+            cloudWaterLevel = 1f;
+            for (int x = 0; x < map.GetLength(0); x++)
+            {
+                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Continent && cloudWaterLevel > 0)
+                {
+                    map.MapData.Data[x, y].WaterProximity += 0.01f;
+                    cloudWaterLevel -= 0.01f;
+                }
+                else
+                {
+                    cloudWaterLevel += 0.01f;
+                }
+            }
+        }
     }
 
     float ComputeWaterProximity(Map map, int x, int y)
@@ -467,7 +495,7 @@ public class MapGenerator : MonoBehaviour
                 }
             }
         }
-        return 0f;
+        return map.MapData.Data[x, y].WaterProximity;
     }
 
     float ComputeTemperature(Map map, int x, int y)

@@ -11,6 +11,7 @@ public class RandomVectorWalk : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        /*
         array = new float[100, 100];
 
         float n = 4f;
@@ -28,9 +29,10 @@ public class RandomVectorWalk : MonoBehaviour
         InterpolatePoints(array, points);
 
         WriteArrayToCSV(array, "output.csv");
+        */
     }
 
-    private void SubdivideRecursive(List<Vector2Int> list, int start, int end, float maxAngleDisplacement)
+    public void SubdivideRecursive(List<Vector2Int> list, int start, int end, float maxAngleDisplacement)
     {
         if (end - start <= 1)
         {
@@ -57,7 +59,7 @@ public class RandomVectorWalk : MonoBehaviour
         
     }
 
-    void AddStartEndPoints(List<Vector2Int> points)
+    public void AddStartEndPoints(List<Vector2Int> points)
     {
         Vector2Int startPoint = new Vector2Int(2, 2);
         Vector2Int endPoint = new Vector2Int(98, 98);
@@ -94,7 +96,7 @@ public class RandomVectorWalk : MonoBehaviour
     }
 
     // Interpolate the points in the 2D array by adding 1s between each consecutive pair of Vector2Int points
-    public void InterpolatePoints(float[,] array, List<Vector2Int> points)
+    public void InterpolatePoints(Map map, List<Vector2Int> points, int riverID)
     {
         for (int i = 0; i < points.Count - 1; i++)
         {
@@ -105,9 +107,10 @@ public class RandomVectorWalk : MonoBehaviour
             foreach (Vector2Int point in GetLinePoints(start, end))
             {
                 // Ensure we are within the array bounds
-                if (point.x >= 0 && point.x < array.GetLength(0) && point.y >= 0 && point.y < array.GetLength(1))
+                if (point.x >= 0 && point.x < map.GetLength(0) && point.y >= 0 && point.y < map.GetLength(1))
                 {
-                    array[point.x, point.y] = 1f;
+                    map.MapData.Data[point.x, point.y].LandWaterType = LandWaterType.River;
+                    map.MapData.Data[point.x, point.y].LandWaterFeatureID = riverID;
                 }
             }
         }
