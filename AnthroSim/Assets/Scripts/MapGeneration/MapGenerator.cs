@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
@@ -31,6 +32,11 @@ public class MapGenerator : MonoBehaviour
 
     RandomVectorWalk RandomVectorWalk { get { if (_randomVectorWalk == null) { _randomVectorWalk = FindObjectOfType<RandomVectorWalk>(); } return _randomVectorWalk; } set { _randomVectorWalk = value; } }
 
+    private Mesh mesh;
+
+    [SerializeField]
+    Material yourMaterial;
+
     void Start()
     {
 
@@ -44,7 +50,8 @@ public class MapGenerator : MonoBehaviour
             Rectangle bounds = GetContinentBounds(map);
             CreateContinent(map, bounds);
         }
-        CreateSpriteFromMap(map, mapResolution);
+        //CreateSpriteFromMap(map, mapResolution);
+        CreateTiledMesh(map);
     }
 
     public Rectangle GetContinentBounds(Map map)
@@ -537,6 +544,76 @@ public class MapGenerator : MonoBehaviour
             return 1f - vegCurveCoefficient * Mathf.Pow(optimumTemperature - currTemperature, 2);
         }
         return 0f;
+    }
+
+    void CreateTiledMesh(Map map)
+    {
+        int tileSize = 100; // Or another size within the 65,536 limit
+        int width = map.GetLength(0);
+        int height = map.GetLength(1);
+        float scale = 10f;
+
+        for (int y = 0; y < height; y += tileSize)
+        {
+            for (int x = 0; x < width; x += tileSize)
+            {
+                int currentTileWidth = Mathf.Min(tileSize, width - x);
+                int currentTileHeight = Mathf.Min(tileSize, height - y);
+                CreateMeshTile(map, x, y, currentTileWidth, currentTileHeight, scale);
+            }
+        }
+    }
+
+    void CreateMeshTile(Map map, int startX, int startY, int tileWidth, int tileHeight, float scale)
+    {
+        Mesh tileMesh = new Mesh();
+        Vector3[] vertices = new Vector3[tileWidth * tileHeight];
+        int[] triangles = new int[(tileWidth - 1) * (tileHeight - 1) * 6];
+
+        // Generate vertices and triangles for this tile
+        for (int z = 0; z < tileHeight; z++)
+        {
+            for (int x = 0; x < tileWidth; x++)
+            {
+                float y = map.MapData.Data[startX + x, startY + z].Height * scale;
+                vertices[z * tileWidth + x] = new Vector3(startX + x, y, startY + z);
+            }
+        }
+
+        // Set up triangles (similar to your existing code)
+        // Generate triangles
+        int triIndex = 0;
+        for (int z = 0; z < tileHeight - 1; z++)
+        {
+            for (int x = 0; x < tileWidth - 1; x++)
+            {
+                int topLeft = z * tileWidth + x;
+                int bottomLeft = (z + 1) * tileWidth + x;
+
+                // Triangle 1
+                triangles[triIndex] = topLeft;
+                triangles[triIndex + 1] = bottomLeft;
+                triangles[triIndex + 2] = topLeft + 1;
+
+                // Triangle 2
+                triangles[triIndex + 3] = bottomLeft;
+                triangles[triIndex + 4] = bottomLeft + 1;
+                triangles[triIndex + 5] = topLeft + 1;
+
+                triIndex += 6;
+            }
+        }
+
+        tileMesh.vertices = vertices;
+        tileMesh.triangles = triangles;
+        tileMesh.RecalculateNormals();
+
+        // Assign this tileMesh to a new GameObject or part of a parent object
+        GameObject tileObject = new GameObject($"Tile_{startX}_{startY}");
+        tileObject.AddComponent<MeshFilter>().mesh = tileMesh;
+        MeshRenderer renderer = tileObject.AddComponent<MeshRenderer>();
+        renderer.material = yourMaterial;
+        tileObject.transform.parent = map.transform; // Optional: attach to a parent
     }
 }
 
