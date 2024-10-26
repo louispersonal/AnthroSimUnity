@@ -12,6 +12,7 @@ public class MapDataPoint
     public GeoFeatureType GeoFeatureType;
     public int GeoFeatureID;
     public float WaterProximity;
+    public float Precipitation;
     public float LowVegetation;
     public float HighVegetation;
 
@@ -24,6 +25,7 @@ public class MapDataPoint
         GeoFeatureType = GeoFeatureType.None;
         GeoFeatureID = 0;
         WaterProximity = 0f;
+        Precipitation = 0f;
         LowVegetation = 0f;
         HighVegetation = 0f;
     }

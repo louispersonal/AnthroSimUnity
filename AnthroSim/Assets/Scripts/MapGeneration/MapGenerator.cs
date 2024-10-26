@@ -74,7 +74,7 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = bounds.Y_lo; y < bounds.Y_hi; y++)
             {
-                map.MapData.Data[x,y].WaterProximity = ComputeWaterProximity(map, x, y);
+                //map.MapData.Data[x,y].WaterProximity = ComputeWaterProximity(map, x, y);
                 map.MapData.Data[x, y].Temperature = ComputeTemperature(map, x, y);
                 map.MapData.Data[x, y].LowVegetation = ComputeLowVegetation(map, x, y);
                 map.MapData.Data[x, y].HighVegetation = ComputeHighVegetation(map, x, y);
@@ -431,52 +431,52 @@ public class MapGenerator : MonoBehaviour
     {
         // Starting at the top of the map, going right, the cloud picks up water over water, and drops water over land
         // cloud direction changes at 0.25x the map height and 0.75x the map height
-        float cloudWaterLevel = 1f;
-        for (int y = 0; y < map.GetLength(1) / 4; y++)
+
+        int overlap = map.GetLength(1) / 16;
+
+        Cloud cloud = new Cloud();
+        for (int y = 0; y < (map.GetLength(1) / 4) + overlap; y++)
         {
-            cloudWaterLevel = 1f;
+            cloud.Reset();
             for (int x = 0; x < map.GetLength(0); x++)
             {
-                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Continent && cloudWaterLevel > 0)
+                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Continent)
                 {
-                    map.MapData.Data[x, y].WaterProximity += 0.01f;
-                    cloudWaterLevel -= 0.01f;
+                    map.MapData.Data[x, y].Precipitation += cloud.Rain();
                 }
                 else
                 {
-                    cloudWaterLevel += 0.01f;
+                    cloud.Evaporate();
                 }
             }
         }
-        for (int y = map.GetLength(1) / 4; y < map.GetLength(1) * 3 / 4; y++)
+        for (int y = map.GetLength(1) / 4; y < (map.GetLength(1) * 3 / 4) + overlap; y++)
         {
-            cloudWaterLevel = 1f;
+            cloud.Reset();
             for (int x = map.GetLength(0) - 1; x >= 0; x--)
             {
-                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Continent && cloudWaterLevel > 0)
+                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Continent)
                 {
-                    map.MapData.Data[x, y].WaterProximity += 0.01f;
-                    cloudWaterLevel -= 0.01f;
+                    map.MapData.Data[x, y].Precipitation += cloud.Rain();
                 }
                 else
                 {
-                    cloudWaterLevel += 0.01f;
+                    cloud.Evaporate();
                 }
             }
         }
         for (int y = map.GetLength(1) * 3 / 4; y < map.GetLength(1); y++)
         {
-            cloudWaterLevel = 1f;
+            cloud.Reset();
             for (int x = 0; x < map.GetLength(0); x++)
             {
-                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Continent && cloudWaterLevel > 0)
+                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Continent)
                 {
-                    map.MapData.Data[x, y].WaterProximity += 0.01f;
-                    cloudWaterLevel -= 0.01f;
+                    map.MapData.Data[x, y].Precipitation += cloud.Rain();
                 }
                 else
                 {
-                    cloudWaterLevel += 0.01f;
+                    cloud.Evaporate();
                 }
             }
         }
@@ -537,5 +537,38 @@ public class MapGenerator : MonoBehaviour
             return 1f - vegCurveCoefficient * Mathf.Pow(optimumTemperature - currTemperature, 2);
         }
         return 0f;
+    }
+}
+
+public class Cloud
+{
+    float _waterLevel;
+    float _waterLevelChange = 0.99f;
+
+    public Cloud()
+    {
+        Reset();
+    }
+
+    public void Reset()
+    {
+        _waterLevel = 1;
+    }
+
+    public float Rain()
+    {
+        _waterLevel *= _waterLevelChange;
+        _waterLevel = Mathf.Max(0f, _waterLevel);
+        if (_waterLevel > 0)
+        {
+            return _waterLevel;
+        }
+        return 0;
+    }
+
+    public void Evaporate()
+    {
+        _waterLevel /= _waterLevelChange;
+        _waterLevel = Mathf.Min(1f, _waterLevel);
     }
 }
