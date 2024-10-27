@@ -37,6 +37,12 @@ public class MapGenerator : MonoBehaviour
     [SerializeField]
     Material yourMaterial;
 
+    [SerializeField]
+    MeshFilter _planeMesh;
+
+    [SerializeField]
+    MeshRenderer _planeRenderer;
+
     void Start()
     {
 
@@ -51,7 +57,11 @@ public class MapGenerator : MonoBehaviour
             CreateContinent(map, bounds);
         }
         //CreateSpriteFromMap(map, mapResolution);
-        CreateTiledMesh(map);
+        float planeWorldWidth = 100;
+        float planeWorldHeight = 100;
+        _planeMesh.mesh = CreatePlane(planeWorldWidth, planeWorldHeight, width/50, height/50);
+        _planeRenderer.material.mainTexture = CreateTexture2DFromMap(map);
+        //CreateTiledMesh(map);
     }
 
     public Rectangle GetContinentBounds(Map map)
@@ -295,6 +305,95 @@ public class MapGenerator : MonoBehaviour
         // Create a GameObject and add a SpriteRenderer
         SpriteRenderer spriteRenderer = map.GetComponent<SpriteRenderer>();
         spriteRenderer.sprite = sprite;
+    }
+
+    Texture2D CreateTexture2DFromMap(Map map)
+    {
+        // Create a new Texture2D
+        Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
+
+        // Loop through the array and set pixels
+        for (int y = 0; y < map.GetLength(1); y++)
+        {
+            for (int x = 0; x < map.GetLength(0); x++)
+            {
+                Color color;
+                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Ocean || map.MapData.Data[x, y].LandWaterType == LandWaterType.River)
+                {
+                    color = new Color(0, 0.3f, 0.7f);
+                }
+                else
+                {
+                    color = new Color(0.76f, 1f, 0.6f);
+                    if (map.MapData.Data[x, y].LowVegetation > 0f)
+                    {
+                        float value = map.MapData.Data[x, y].LowVegetation;
+                        color = new Color(0, value, 0);
+                    }
+                }
+                texture.SetPixel(x, y, color);
+            }
+        }
+
+        // Apply all SetPixel calls
+        texture.Apply();
+
+        return texture;
+    }
+
+    public Mesh CreatePlane(float width, float height, int widthSegments, int heightSegments)
+    {
+        Mesh mesh = new Mesh();
+
+        int verticesX = widthSegments + 1;
+        int verticesZ = heightSegments + 1;
+        Vector3[] vertices = new Vector3[verticesX * verticesZ];
+        Vector2[] uv = new Vector2[vertices.Length];
+        int[] triangles = new int[widthSegments * heightSegments * 6];
+
+        float xStep = width / widthSegments;
+        float zStep = height / heightSegments;
+
+        // Generate vertices and UVs
+        int vertIndex = 0;
+        for (int z = 0; z < verticesZ; z++)
+        {
+            for (int x = 0; x < verticesX; x++)
+            {
+                float xPos = x * xStep - width / 2;
+                float zPos = z * zStep - height / 2;
+                vertices[vertIndex] = new Vector3(xPos, 0, zPos);
+                uv[vertIndex] = new Vector2((float)x / widthSegments, (float)z / heightSegments);
+                vertIndex++;
+            }
+        }
+
+        // Generate triangles
+        int triIndex = 0;
+        for (int z = 0; z < heightSegments; z++)
+        {
+            for (int x = 0; x < widthSegments; x++)
+            {
+                int topLeft = z * verticesX + x;
+                int bottomLeft = (z + 1) * verticesX + x;
+
+                triangles[triIndex++] = topLeft;
+                triangles[triIndex++] = bottomLeft;
+                triangles[triIndex++] = bottomLeft + 1;
+
+                triangles[triIndex++] = topLeft;
+                triangles[triIndex++] = bottomLeft + 1;
+                triangles[triIndex++] = topLeft + 1;
+            }
+        }
+
+        // Assign mesh properties
+        mesh.vertices = vertices;
+        mesh.uv = uv;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+
+        return mesh;
     }
 
     void AddMountainRange(Map map, Rectangle continentBounds)
