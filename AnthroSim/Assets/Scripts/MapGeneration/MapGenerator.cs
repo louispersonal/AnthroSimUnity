@@ -61,8 +61,14 @@ public class MapGenerator : MonoBehaviour
         float planeWorldHeight = 100;
         _planeMesh.mesh = CreatePlane(planeWorldWidth, planeWorldHeight, (width/5) - 1, (height/5) - 1);
         ModifyVertices(map, _planeMesh.mesh);
-        _planeRenderer.material.mainTexture = CreateTexture2DFromMap(map);
-        //CreateTiledMesh(map);
+
+        map.AddMapMode(MapModes.Normal);
+        map.AddMapMode(MapModes.Temperature);
+        map.AddMapMode(MapModes.Precipitation);
+        map.AddMapMode(MapModes.LowVegetation);
+        map.AddMapMode(MapModes.HighVegetation);
+
+        map.SetMapMode(MapModes.Normal);
     }
 
     public Rectangle GetContinentBounds(Map map)
@@ -516,10 +522,7 @@ public class MapGenerator : MonoBehaviour
     void AddRiver(Map map, Vector2Int sourceLocation)
     {
         Vector2Int riverEndLocation = FindClosestCoastline(map, sourceLocation);
-        //int maxRiverWidth = 100;
-        map.MapData.Data[sourceLocation.x, sourceLocation.y].LandWaterType = LandWaterType.River;
         int riverID = LandwaterAtlas.GetAvailableRiverID();
-        map.MapData.Data[sourceLocation.x, sourceLocation.y].LandWaterFeatureID = riverID;
 
         int numPoints = 20;
         List<Vector2Int> points = new List<Vector2Int>();
