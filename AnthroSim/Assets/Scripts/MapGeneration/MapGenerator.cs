@@ -59,7 +59,8 @@ public class MapGenerator : MonoBehaviour
         //CreateSpriteFromMap(map, mapResolution);
         float planeWorldWidth = 100;
         float planeWorldHeight = 100;
-        _planeMesh.mesh = CreatePlane(planeWorldWidth, planeWorldHeight, width/50, height/50);
+        _planeMesh.mesh = CreatePlane(planeWorldWidth, planeWorldHeight, (width/5) - 1, (height/5) - 1);
+        ModifyVertices(map, _planeMesh.mesh);
         _planeRenderer.material.mainTexture = CreateTexture2DFromMap(map);
         //CreateTiledMesh(map);
     }
@@ -108,7 +109,7 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                float displacement = CalculateHeight(x, y, width, height) * 0.2f;
+                float displacement = CalculateHeight(x, y, width, height) * 0.5f;
                 map.MapData.Data[x, y].Height += displacement;
             }
         }
@@ -394,6 +395,36 @@ public class MapGenerator : MonoBehaviour
         mesh.RecalculateNormals();
 
         return mesh;
+    }
+
+    void ModifyVertices(Map map, Mesh mesh)
+    {
+        float heightScale = 1f;
+
+        Vector3[] vertices = mesh.vertices;
+
+        int resolution = 5;
+
+        int width = map.GetLength(0) / resolution;
+        int height = map.GetLength(1) / resolution;
+
+        for (int z = 0; z < height; z++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int index = z * width + x; // Calculate the vertex index
+                Vector3 vertex = vertices[index];
+                vertex.y = map.MapData.Data[x * resolution, z * resolution].Height * heightScale; // Scale the height
+                vertices[index] = vertex; // Assign the updated vertex
+            }
+        }
+
+        // Assign the modified vertices back to the mesh
+        mesh.vertices = vertices;
+
+        // Recalculate normals and bounds for proper lighting and rendering
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
     }
 
     void AddMountainRange(Map map, Rectangle continentBounds)
