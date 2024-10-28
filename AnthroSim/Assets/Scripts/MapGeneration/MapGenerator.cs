@@ -533,7 +533,7 @@ public class MapGenerator : MonoBehaviour
 
         RandomVectorWalk.SubdivideRecursive(points, 0, numPoints - 1, 30f);
 
-        RandomVectorWalk.InterpolatePoints(map, points, riverID);
+        RandomVectorWalk.InterpolateRiverPoints(map, points, riverID);
     }
 
     Vector2Int FindClosestCoastline(Map map, Vector2Int point)

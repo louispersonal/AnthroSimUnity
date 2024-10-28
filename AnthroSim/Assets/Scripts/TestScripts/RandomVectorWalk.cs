@@ -8,6 +8,9 @@ public class RandomVectorWalk : MonoBehaviour
 {
     float[,] array;
 
+    GeoFeatureAtlas _geoFeatureAtlas;
+    GeoFeatureAtlas GeoFeatureAtlas { get { if (_geoFeatureAtlas == null) { _geoFeatureAtlas = FindObjectOfType<GeoFeatureAtlas>(); } return _geoFeatureAtlas; } set { _geoFeatureAtlas = value; } }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -96,7 +99,7 @@ public class RandomVectorWalk : MonoBehaviour
     }
 
     // Interpolate the points in the 2D array by adding 1s between each consecutive pair of Vector2Int points
-    public void InterpolatePoints(Map map, List<Vector2Int> points, int riverID)
+    public void InterpolateRiverPoints(Map map, List<Vector2Int> points, int riverID)
     {
         for (int i = 0; i < points.Count - 1; i++)
         {
@@ -111,6 +114,37 @@ public class RandomVectorWalk : MonoBehaviour
                 {
                     map.MapData.Data[point.x, point.y].LandWaterType = LandWaterType.River;
                     map.MapData.Data[point.x, point.y].LandWaterFeatureID = riverID;
+                    CarveValley(map, point, 7, GeoFeatureAtlas.GetAvailableValleyID(), 0.5f);
+                }
+            }
+        }
+    }
+
+    public void CarveValley(Map map, Vector2Int bottomLocation, int valleyRadius, int valleyID, float valleyDepth)
+    {
+        // Coefficients for controlling the spread of the parabola
+        float a = 1f, b = 1f;
+        // Iterate over every element in the 2D array
+        for (int y = bottomLocation.y - valleyRadius; y < bottomLocation.y + valleyRadius; y++)
+        {
+            for (int x = bottomLocation.x - valleyRadius; x < bottomLocation.x + valleyRadius; x++)
+            {
+                if (map.MapData.Data[x, y].GeoFeatureType == GeoFeatureType.None)
+                {
+                    // Calculate the distance from the center of the peak
+                    float dx = ((float)x - (float)bottomLocation.x);
+                    float dy = ((float)y - (float)bottomLocation.y);
+
+                    // Apply the parabolic formula
+                    float value = valleyDepth + ((a * dx * dx + b * dy * dy) / (valleyRadius * valleyRadius));
+
+                    // Clamp the value between minHeight and maxHeight
+                    value = Mathf.Min(map.MapData.Data[x, y].Height, Mathf.Min(valleyDepth, value));
+
+                    // Add this peak value to the array
+                    map.MapData.Data[x, y].Height = value;
+                    map.MapData.Data[x, y].GeoFeatureType = GeoFeatureType.Valley;
+                    map.MapData.Data[x, y].GeoFeatureID = valleyID;
                 }
             }
         }
