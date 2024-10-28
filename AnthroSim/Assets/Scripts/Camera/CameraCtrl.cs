@@ -12,7 +12,7 @@ public class CameraCtrl : MonoBehaviour
 
     Vector3 _horiVertiInput;
 
-    float _scrollInput;
+    float _zoomInput;
 
     bool _fixedUpdateComplete = false;
 
@@ -29,7 +29,7 @@ public class CameraCtrl : MonoBehaviour
         {
             _horiVertiInput.x = Input.GetAxisRaw("Horizontal");
             _horiVertiInput.z = Input.GetAxisRaw("Vertical");
-            _scrollInput = Input.GetAxis("Mouse ScrollWheel");
+            _zoomInput = Input.GetAxis("Zoom");
             _fixedUpdateComplete = false;
         }
     }
@@ -38,7 +38,7 @@ public class CameraCtrl : MonoBehaviour
     {
         Vector3 currentCameraPosition = gameObject.transform.position;
         currentCameraPosition += _horiVertiInput * _cameraSpeed;
-        currentCameraPosition.y += _scrollInput * _zoomSpeed;
+        currentCameraPosition.y += _zoomInput * _zoomSpeed;
         gameObject.transform.position = currentCameraPosition;
         _fixedUpdateComplete = true;
     }

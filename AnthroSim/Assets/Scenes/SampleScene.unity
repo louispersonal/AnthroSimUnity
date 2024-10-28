@@ -672,7 +672,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _cameraSpeed: 5
-  _zoomSpeed: 500
+  _zoomSpeed: 5
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
