@@ -52,11 +52,31 @@ public class MapTextureGenerator : MonoBehaviour
                 }
                 else
                 {
-                    color = new Color(0.76f, 1f, 0.6f);
-                    if (map.MapData.Data[x, y].LowVegetation > 0f)
+                    if (map.MapData.Data[x, y].LowVegetation < 0.1f && map.MapData.Data[x, y].HighVegetation < 0.1f)
                     {
-                        float value = map.MapData.Data[x, y].LowVegetation;
-                        color = new Color(0, value, 0);
+                        if (map.MapData.Data[x, y].Temperature > 30f)
+                        {
+                            //desert
+                            color = new Color(0.7f, 0.5f, 0f);
+                        }
+                        else
+                        {
+                            //tundra
+                            color = new Color(0.45f, 0.45f, 0.45f);
+                        }
+                    }
+                    else
+                    {
+                        if (map.MapData.Data[x, y].LowVegetation > map.MapData.Data[x, y].HighVegetation)
+                        {
+                            // grassland
+                            color = new Color(0.36f, 0.6f, 0.33f);
+                        }
+                        else
+                        {
+                            // forest
+                            color = new Color(0.2f, 0.35f, 0.2f);
+                        }
                     }
                 }
                 texture.SetPixel(x, y, color);
