@@ -98,7 +98,7 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = bounds.Y_lo; y < bounds.Y_hi; y++)
             {
-                //map.MapData.Data[x,y].WaterProximity = ComputeWaterProximity(map, x, y);
+                map.MapData.Data[x,y].WaterProximity = ComputeWaterProximity(map, x, y);
                 map.MapData.Data[x, y].Temperature = ComputeTemperature(map, x, y);
                 map.MapData.Data[x, y].LowVegetation = ComputeLowVegetation(map, x, y);
                 map.MapData.Data[x, y].HighVegetation = ComputeHighVegetation(map, x, y);
@@ -658,7 +658,7 @@ public class MapGenerator : MonoBehaviour
         float vegCurveCoefficient = 0.003f;
         float currTemperature = map.MapData.Data[x, y].Temperature;
 
-        if (map.MapData.Data[x, y].WaterProximity > 0f)
+        if (map.MapData.Data[x, y].WaterProximity > 0f || map.MapData.Data[x, y].Precipitation > 0.5f)
         {
             return 1f - vegCurveCoefficient * Mathf.Pow(optimumTemperature - currTemperature, 2);
         }
@@ -672,7 +672,7 @@ public class MapGenerator : MonoBehaviour
         float vegCurveCoefficient = 0.02f;
         float currTemperature = map.MapData.Data[x, y].Temperature;
 
-        if (map.MapData.Data[x, y].WaterProximity > 0f)
+        if (map.MapData.Data[x, y].WaterProximity > 0f || map.MapData.Data[x, y].Precipitation > 0.2f)
         {
             return 1f - vegCurveCoefficient * Mathf.Pow(optimumTemperature - currTemperature, 2);
         }
@@ -753,7 +753,7 @@ public class MapGenerator : MonoBehaviour
 public class Cloud
 {
     float _waterLevel;
-    float _waterLevelChange = 0.99f;
+    float _waterLevelChange = 0.995f;
 
     public Cloud()
     {
