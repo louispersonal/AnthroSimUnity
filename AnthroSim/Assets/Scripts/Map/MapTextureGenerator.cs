@@ -77,7 +77,8 @@ public class MapTextureGenerator : MonoBehaviour
         {
             for (int x = 0; x < map.GetLength(0); x++)
             {
-                Color color = new (map.MapData.Data[x, y].Temperature, 0, 0);
+                float value = (map.MapData.Data[x, y].Temperature + 20) / 60;
+                Color color = new (value, 0, 0);
                 texture.SetPixel(x, y, color);
             }
         }
@@ -94,7 +95,7 @@ public class MapTextureGenerator : MonoBehaviour
         {
             for (int x = 0; x < map.GetLength(0); x++)
             {
-                Color color = new (0, 0, map.MapData.Data[x, y].Temperature);
+                Color color = new (0, 0, map.MapData.Data[x, y].Precipitation);
                 texture.SetPixel(x, y, color);
             }
         }
@@ -111,7 +112,7 @@ public class MapTextureGenerator : MonoBehaviour
         {
             for (int x = 0; x < map.GetLength(0); x++)
             {
-                Color color = new (0, map.MapData.Data[x, y].Temperature, 0);
+                Color color = new (0, map.MapData.Data[x, y].LowVegetation, 0);
                 texture.SetPixel(x, y, color);
             }
         }

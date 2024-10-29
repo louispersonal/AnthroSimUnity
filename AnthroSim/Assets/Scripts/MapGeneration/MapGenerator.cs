@@ -644,7 +644,7 @@ public class MapGenerator : MonoBehaviour
         float minTemperature = -20f;
         int worldHeight = map.GetLength(1);
 
-        float tempCurveCoefficient = (4 * (minTemperature - maxTemperature)) / (-1 * worldHeight * worldHeight);
+        float tempCurveCoefficient = (4 * (minTemperature - maxTemperature)) / (-1 * worldHeight * worldHeight * 0.5f);
 
         float distanceFromEquator = Mathf.Abs((worldHeight / 2) - y);
 
