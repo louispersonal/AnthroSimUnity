@@ -46,15 +46,15 @@ public class MapTextureGenerator : MonoBehaviour
             for (int x = 0; x < map.GetLength(0); x++)
             {
                 Color color;
-                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Ocean || map.MapData.Data[x, y].LandWaterType == LandWaterType.River)
+                if (map.GetLandWaterType(x, y) == LandWaterType.Ocean || map.GetLandWaterType(x, y) == LandWaterType.River)
                 {
                     color = new Color(0, 0.3f, 0.7f);
                 }
                 else
                 {
-                    if (map.MapData.Data[x, y].LowVegetation < 0.1f && map.MapData.Data[x, y].HighVegetation < 0.1f)
+                    if (map.GetLowVegetation(x, y) < 0.1f && map.GetHighVegetation(x, y) < 0.1f)
                     {
-                        if (map.MapData.Data[x, y].Temperature > 30f)
+                        if (map.GetTemperature(x, y) > 30f)
                         {
                             //desert
                             color = new Color(0.7f, 0.5f, 0f);
@@ -67,7 +67,7 @@ public class MapTextureGenerator : MonoBehaviour
                     }
                     else
                     {
-                        if (map.MapData.Data[x, y].LowVegetation > map.MapData.Data[x, y].HighVegetation)
+                        if (map.GetLowVegetation(x, y) > map.GetHighVegetation(x, y))
                         {
                             // grassland
                             color = new Color(0.36f, 0.6f, 0.33f);
@@ -97,7 +97,7 @@ public class MapTextureGenerator : MonoBehaviour
         {
             for (int x = 0; x < map.GetLength(0); x++)
             {
-                float value = (map.MapData.Data[x, y].Temperature + 20) / 60;
+                float value = (map.GetTemperature(x, y) + 20) / 60;
                 Color color = new (value, 0, 0);
                 texture.SetPixel(x, y, color);
             }
@@ -115,7 +115,7 @@ public class MapTextureGenerator : MonoBehaviour
         {
             for (int x = 0; x < map.GetLength(0); x++)
             {
-                Color color = new (0, 0, map.MapData.Data[x, y].Precipitation);
+                Color color = new (0, 0, map.GetPrecipitation(x, y));
                 texture.SetPixel(x, y, color);
             }
         }
@@ -132,7 +132,7 @@ public class MapTextureGenerator : MonoBehaviour
         {
             for (int x = 0; x < map.GetLength(0); x++)
             {
-                Color color = new (0, map.MapData.Data[x, y].LowVegetation, 0);
+                Color color = new (0, map.GetLowVegetation(x, y), 0);
                 texture.SetPixel(x, y, color);
             }
         }
@@ -149,7 +149,7 @@ public class MapTextureGenerator : MonoBehaviour
         {
             for (int x = 0; x < map.GetLength(0); x++)
             {
-                Color color = new (0, map.MapData.Data[x, y].HighVegetation, 0);
+                Color color = new (0, map.GetHighVegetation(x, y), 0);
                 texture.SetPixel(x, y, color);
             }
         }

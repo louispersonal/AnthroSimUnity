@@ -112,8 +112,8 @@ public class RandomVectorWalk : MonoBehaviour
                 // Ensure we are within the array bounds
                 if (point.x >= 0 && point.x < map.GetLength(0) && point.y >= 0 && point.y < map.GetLength(1))
                 {
-                    map.MapData.Data[point.x, point.y].LandWaterType = LandWaterType.River;
-                    map.MapData.Data[point.x, point.y].LandWaterFeatureID = riverID;
+                    map.SetLandWaterType(point.x, point.y, LandWaterType.River);
+                    map.SetLandWaterFeatureID(point.x, point.y, riverID);
                     CarveValley(map, point, 7, GeoFeatureAtlas.GetAvailableValleyID(), 0.5f);
                 }
             }
@@ -129,7 +129,7 @@ public class RandomVectorWalk : MonoBehaviour
         {
             for (int x = bottomLocation.x - valleyRadius; x < bottomLocation.x + valleyRadius; x++)
             {
-                if (map.MapData.Data[x, y].GeoFeatureType == GeoFeatureType.None)
+                if (map.GetGeoFeatureType(x, y) == GeoFeatureType.None)
                 {
                     // Calculate the distance from the center of the peak
                     float dx = ((float)x - (float)bottomLocation.x);
@@ -139,12 +139,12 @@ public class RandomVectorWalk : MonoBehaviour
                     float value = valleyDepth + ((a * dx * dx + b * dy * dy) / (valleyRadius * valleyRadius));
 
                     // Clamp the value between minHeight and maxHeight
-                    value = Mathf.Min(map.MapData.Data[x, y].Height, Mathf.Min(valleyDepth, value));
+                    value = Mathf.Min(map.GetHeight(x, y), Mathf.Min(valleyDepth, value));
 
                     // Add this peak value to the array
-                    map.MapData.Data[x, y].Height = value;
-                    map.MapData.Data[x, y].GeoFeatureType = GeoFeatureType.Valley;
-                    map.MapData.Data[x, y].GeoFeatureID = valleyID;
+                    map.SetHeight(x, y, value);
+                    map.SetGeoFeatureType(x, y, GeoFeatureType.Valley);
+                    map.SetGeoFeatureID(x, y, valleyID);
                 }
             }
         }

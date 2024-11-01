@@ -98,10 +98,10 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = bounds.Y_lo; y < bounds.Y_hi; y++)
             {
-                map.MapData.Data[x,y].WaterProximity = ComputeWaterProximity(map, x, y);
-                map.MapData.Data[x, y].Temperature = ComputeTemperature(map, x, y);
-                map.MapData.Data[x, y].LowVegetation = ComputeLowVegetation(map, x, y);
-                map.MapData.Data[x, y].HighVegetation = ComputeHighVegetation(map, x, y);
+                map.SetWaterProximity(x, y, ComputeWaterProximity(map, x, y));
+                map.SetTemperature(x, y, ComputeTemperature(map, x, y));
+                map.SetLowVegetation(x, y, ComputeLowVegetation(map, x, y));
+                map.SetHighVegetation(x, y, ComputeHighVegetation(map, x, y));
             }
         }
     }
@@ -116,7 +116,7 @@ public class MapGenerator : MonoBehaviour
             for (int y = 0; y < height; y++)
             {
                 float displacement = CalculateHeight(x, y, width, height) * 0.5f;
-                map.MapData.Data[x, y].Height += displacement;
+                map.SetHeight(x, y, map.GetHeight(x, y) + displacement);
             }
         }
 
@@ -168,8 +168,8 @@ public class MapGenerator : MonoBehaviour
                 x += (int)step.x;
                 y += (int)step.y;
                 map.SetHeight(x, y, pixelValue);
-                map.MapData.Data[x, y].LandWaterType = LandWaterType.Continent;
-                map.MapData.Data[x, y].LandWaterFeatureID = continentID;
+                map.SetLandWaterType(x, y, LandWaterType.Continent);
+                map.SetLandWaterFeatureID(x, y, continentID);
             }
         }
 
@@ -183,8 +183,8 @@ public class MapGenerator : MonoBehaviour
                 x += (int)step.x;
                 y += (int)step.y;
                 map.SetHeight(x, y, pixelValue);
-                map.MapData.Data[x, y].LandWaterType = LandWaterType.Continent;
-                map.MapData.Data[x, y].LandWaterFeatureID = continentID;
+                map.SetLandWaterType(x, y, LandWaterType.Continent);
+                map.SetLandWaterFeatureID(x, y, continentID);
             }
         }
 
@@ -197,8 +197,8 @@ public class MapGenerator : MonoBehaviour
                 x += (int)step.x;
                 y += (int)step.y;
                 map.SetHeight(x, y, pixelValue);
-                map.MapData.Data[x, y].LandWaterType = LandWaterType.Continent;
-                map.MapData.Data[x, y].LandWaterFeatureID = continentID;
+                map.SetLandWaterType(x, y, LandWaterType.Continent);
+                map.SetLandWaterFeatureID(x, y, continentID);
             }
         }
 
@@ -211,8 +211,8 @@ public class MapGenerator : MonoBehaviour
                 x += (int)step.x;
                 y += (int)step.y;
                 map.SetHeight(x, y, pixelValue);
-                map.MapData.Data[x, y].LandWaterType = LandWaterType.Continent;
-                map.MapData.Data[x, y].LandWaterFeatureID = continentID;
+                map.SetLandWaterType(x, y, LandWaterType.Continent);
+                map.SetLandWaterFeatureID(x, y, continentID);
             }
         }
     }
@@ -263,8 +263,8 @@ public class MapGenerator : MonoBehaviour
 
             // Fill the point with 0.5
             map.SetHeight(x, y, 0.5f);
-            map.MapData.Data[x, y].LandWaterType = LandWaterType.Continent;
-            map.MapData.Data[x, y].LandWaterFeatureID = continentID;
+            map.SetLandWaterType(x, y, LandWaterType.Continent);
+            map.SetLandWaterFeatureID(x, y, continentID);
 
             // Check all four directions and push valid points onto the stack
             if (x + 1 < rows && map.GetHeight(x + 1, y) == 0) stack.Push((x + 1, y));  // Down
@@ -272,80 +272,6 @@ public class MapGenerator : MonoBehaviour
             if (y + 1 < cols && map.GetHeight(x, y + 1) == 0) stack.Push((x, y + 1));  // Right
             if (y - 1 >= 0 && map.GetHeight(x, y - 1) == 0) stack.Push((x, y - 1));    // Left
         }
-    }
-
-    void CreateSpriteFromMap(Map map, float mapResolution)
-    {
-        // Create a new Texture2D
-        Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
-
-        // Loop through the array and set pixels
-        for (int y = 0; y < map.GetLength(1); y++)
-        {
-            for (int x = 0; x < map.GetLength(0); x++)
-            {
-                Color color;
-                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Ocean || map.MapData.Data[x, y].LandWaterType == LandWaterType.River)
-                {
-                    color = new Color(0, 0.3f, 0.7f);
-                }
-                else
-                {
-                    color = new Color(0.76f, 1f, 0.6f);
-                    if (map.MapData.Data[x,y].LowVegetation > 0f)
-                    {
-                        float value = map.MapData.Data[x, y].LowVegetation;
-                        color = new Color(0, value, 0);
-                    }
-                }
-                texture.SetPixel(x, y, color);
-            }
-        }
-
-        // Apply all SetPixel calls
-        texture.Apply();
-        // Specify the pixels per unit (e.g., 5000 if you want it to appear larger or 50 if you want it smaller)
-        float pixelsPerUnit = mapResolution;
-        // Create a new sprite
-        Sprite sprite = Sprite.Create(texture, new Rect(0, 0, map.GetLength(0), map.GetLength(1)), new Vector2(0.5f, 0.5f), pixelsPerUnit);
-
-        // Create a GameObject and add a SpriteRenderer
-        SpriteRenderer spriteRenderer = map.GetComponent<SpriteRenderer>();
-        spriteRenderer.sprite = sprite;
-    }
-
-    Texture2D CreateTexture2DFromMap(Map map)
-    {
-        // Create a new Texture2D
-        Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
-
-        // Loop through the array and set pixels
-        for (int y = 0; y < map.GetLength(1); y++)
-        {
-            for (int x = 0; x < map.GetLength(0); x++)
-            {
-                Color color;
-                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Ocean || map.MapData.Data[x, y].LandWaterType == LandWaterType.River)
-                {
-                    color = new Color(0, 0.3f, 0.7f);
-                }
-                else
-                {
-                    color = new Color(0.76f, 1f, 0.6f);
-                    if (map.MapData.Data[x, y].LowVegetation > 0f)
-                    {
-                        float value = map.MapData.Data[x, y].LowVegetation;
-                        color = new Color(0, value, 0);
-                    }
-                }
-                texture.SetPixel(x, y, color);
-            }
-        }
-
-        // Apply all SetPixel calls
-        texture.Apply();
-
-        return texture;
     }
 
     public Mesh CreatePlane(float width, float height, int widthSegments, int heightSegments)
@@ -420,7 +346,7 @@ public class MapGenerator : MonoBehaviour
             {
                 int index = z * width + x; // Calculate the vertex index
                 Vector3 vertex = vertices[index];
-                vertex.y = map.MapData.Data[x * resolution, z * resolution].Height * heightScale; // Scale the height
+                vertex.y = map.GetHeight(x * resolution, z * resolution) * heightScale;
                 vertices[index] = vertex; // Assign the updated vertex
             }
         }
@@ -438,25 +364,25 @@ public class MapGenerator : MonoBehaviour
         int mountainRadius = Random.Range(_minimumMountainRadius, _maximumMountainRadius);
         Vector2Int firstMountainPeak = FindMountainPeak(map, continentBounds, mountainRadius);
         int numMountains = 1;
-        AddMountain(map, firstMountainPeak,  mountainRadius);
+        float peakHeight = 1f;
+        AddMountain(map, firstMountainPeak,  mountainRadius, peakHeight);
         Vector2 rangeDirection = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f));
         rangeDirection = rangeDirection.normalized;
         while (CheckSpaceForMountain(map, firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2))), mountainRadius) && numMountains < _maxMountainsPerRange)
         {
-            AddMountain(map, firstMountainPeak, mountainRadius);
+            AddMountain(map, firstMountainPeak, mountainRadius, peakHeight);
             numMountains++;
             firstMountainPeak = firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2)));
         }
     }
 
-    void AddMountain(Map map, Vector2Int peakLocation, int mountainRadius)
+    void AddMountain(Map map, Vector2Int peakLocation, int mountainRadius, float peakHeight)
     {
-        MapDataPoint point = map.MapData.Data[peakLocation.x, peakLocation.y];
-        point.Height = 1f;
-        point.GeoFeatureType = GeoFeatureType.Mountain;
+        map.SetHeight(peakLocation.x, peakLocation.y, peakHeight);
+        map.SetGeoFeatureType(peakLocation.x, peakLocation.y, GeoFeatureType.Mountain);
         int mountainID = GeoFeatureAtlas.GetAvailableMountainID();
-        point.GeoFeatureID = mountainID;
-        FormMountain(map, peakLocation, mountainRadius, mountainID, 1f);
+        map.SetGeoFeatureID(peakLocation.x, peakLocation.y, mountainID);
+        FormMountain(map, peakLocation, mountainRadius, mountainID, peakHeight);
         if (Random.Range(0f, 1f) < _chanceOfRiverSourceOnMountain)
         {
             AddRiver(map, peakLocation);
@@ -481,19 +407,19 @@ public class MapGenerator : MonoBehaviour
                 float value = peakHeight - ((a * dx * dx + b * dy * dy) / (mountainRadius * mountainRadius));
 
                 // Clamp the value between minHeight and maxHeight
-                value = Mathf.Max(map.MapData.Data[x, y].Height, Mathf.Min(peakHeight, value));
+                value = Mathf.Max(map.GetHeight(x, y), Mathf.Min(peakHeight, value));
 
                 // Add this peak value to the array
-                map.MapData.Data[x, y].Height = value;
-                map.MapData.Data[x, y].GeoFeatureType = GeoFeatureType.Mountain;
-                map.MapData.Data[x, y].GeoFeatureID = mountainID;
+                map.SetHeight(x, y, value);
+                map.SetGeoFeatureType(x, y, GeoFeatureType.Mountain);
+                map.SetGeoFeatureID(x, y, mountainID);
             }
         }
     }
 
     Vector2Int FindMountainPeak(Map map, Rectangle continentBounds, int mountainRadius)
     {
-        bool spaceForMountain = false;
+        bool spaceForMountain;
         Vector2Int randomPoint;
         do
         {
@@ -506,17 +432,17 @@ public class MapGenerator : MonoBehaviour
 
     bool CheckSpaceForMountain(Map map, Vector2Int peakLocation, int mountainRadius)
     {
-        bool roomOnLand =  map.MapData.Data[peakLocation.x + mountainRadius, peakLocation.y].LandWaterType == LandWaterType.Continent
-            && map.MapData.Data[peakLocation.x - mountainRadius, peakLocation.y].LandWaterType == LandWaterType.Continent
-            && map.MapData.Data[peakLocation.x, peakLocation.y + mountainRadius].LandWaterType == LandWaterType.Continent
-            && map.MapData.Data[peakLocation.x, peakLocation.y - mountainRadius].LandWaterType == LandWaterType.Continent;
+        bool roomOnLand = map.GetLandWaterType(peakLocation.x + mountainRadius, peakLocation.y) == LandWaterType.Continent
+            && map.GetLandWaterType(peakLocation.x - mountainRadius, peakLocation.y) == LandWaterType.Continent
+            && map.GetLandWaterType(peakLocation.x, peakLocation.y + mountainRadius) == LandWaterType.Continent
+            && map.GetLandWaterType(peakLocation.x, peakLocation.y - mountainRadius) == LandWaterType.Continent;
 
-        bool noConflictingMountain = map.MapData.Data[peakLocation.x + mountainRadius, peakLocation.y].GeoFeatureType == GeoFeatureType.None
-            && map.MapData.Data[peakLocation.x - mountainRadius, peakLocation.y].GeoFeatureType == GeoFeatureType.None
-            && map.MapData.Data[peakLocation.x, peakLocation.y + mountainRadius].GeoFeatureType == GeoFeatureType.None
-            && map.MapData.Data[peakLocation.x, peakLocation.y - mountainRadius].GeoFeatureType == GeoFeatureType.None;
+        bool noConflictingFeature = map.GetGeoFeatureType(peakLocation.x + mountainRadius, peakLocation.y) == GeoFeatureType.None
+            && map.GetGeoFeatureType(peakLocation.x - mountainRadius, peakLocation.y) == GeoFeatureType.None
+            && map.GetGeoFeatureType(peakLocation.x, peakLocation.y + mountainRadius) == GeoFeatureType.None
+            && map.GetGeoFeatureType(peakLocation.x, peakLocation.y - mountainRadius) == GeoFeatureType.None;
 
-        return roomOnLand && noConflictingMountain;
+        return roomOnLand && noConflictingFeature;
     }
 
     void AddRiver(Map map, Vector2Int sourceLocation)
@@ -552,7 +478,7 @@ public class MapGenerator : MonoBehaviour
                 currentPoint.y = point.y + (int)(range * Mathf.Sin(angle));
                 if (currentPoint.x < map.GetLength(0) && currentPoint.x >= 0 && currentPoint.y < map.GetLength(1) && currentPoint.y >= 0)
                 {
-                    if (map.MapData.Data[currentPoint.x, currentPoint.y].LandWaterType == LandWaterType.Ocean)
+                    if (map.GetLandWaterType(currentPoint.x, currentPoint.y) == LandWaterType.Ocean)
                     {
                         float distanceToCurrent = Vector2Int.Distance(point, currentPoint);
                         float distanceToClosest = Vector2Int.Distance(point, currentClosestPoint);
@@ -580,9 +506,9 @@ public class MapGenerator : MonoBehaviour
             cloud.Reset();
             for (int x = 0; x < map.GetLength(0); x++)
             {
-                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Continent)
+                if (map.GetLandWaterType(x, y) == LandWaterType.Continent)
                 {
-                    map.MapData.Data[x, y].Precipitation += cloud.Rain();
+                    map.SetPrecipitation(x, y, map.GetPrecipitation(x, y) + cloud.Rain());
                 }
                 else
                 {
@@ -595,9 +521,9 @@ public class MapGenerator : MonoBehaviour
             cloud.Reset();
             for (int x = map.GetLength(0) - 1; x >= 0; x--)
             {
-                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Continent)
+                if (map.GetLandWaterType(x, y) == LandWaterType.Continent)
                 {
-                    map.MapData.Data[x, y].Precipitation += cloud.Rain();
+                    map.SetPrecipitation(x, y, map.GetPrecipitation(x, y) + cloud.Rain());
                 }
                 else
                 {
@@ -610,9 +536,9 @@ public class MapGenerator : MonoBehaviour
             cloud.Reset();
             for (int x = 0; x < map.GetLength(0); x++)
             {
-                if (map.MapData.Data[x, y].LandWaterType == LandWaterType.Continent)
+                if (map.GetLandWaterType(x, y) == LandWaterType.Continent)
                 {
-                    map.MapData.Data[x, y].Precipitation += cloud.Rain();
+                    map.SetPrecipitation(x, y, map.GetPrecipitation(x, y) + cloud.Rain());
                 }
                 else
                 {
@@ -629,13 +555,13 @@ public class MapGenerator : MonoBehaviour
         {
             for (int dy = -maxSearchDistance; dy <= maxSearchDistance; dy++)
             {
-                if (map.MapData.Data[x + dx, y + dy].LandWaterType != LandWaterType.Continent)
+                if (map.GetLandWaterType(x + dx, y + dy) != LandWaterType.Continent)
                 {
                     return 1f;
                 }
             }
         }
-        return map.MapData.Data[x, y].WaterProximity;
+        return map.GetWaterProximity(x, y);
     }
 
     float ComputeTemperature(Map map, int x, int y)
@@ -656,9 +582,9 @@ public class MapGenerator : MonoBehaviour
         // thrives in more extreme temperatures
         float optimumTemperature = 20f;
         float vegCurveCoefficient = 0.003f;
-        float currTemperature = map.MapData.Data[x, y].Temperature;
+        float currTemperature = map.GetTemperature(x, y);
 
-        if (map.MapData.Data[x, y].WaterProximity > 0f || map.MapData.Data[x, y].Precipitation > 0.5f)
+        if (map.GetWaterProximity(x, y) > 0f || map.GetPrecipitation(x, y) > 0.5f)
         {
             return 1f - vegCurveCoefficient * Mathf.Pow(optimumTemperature - currTemperature, 2);
         }
@@ -670,83 +596,13 @@ public class MapGenerator : MonoBehaviour
         // requires mild temperatures
         float optimumTemperature = 20f;
         float vegCurveCoefficient = 0.02f;
-        float currTemperature = map.MapData.Data[x, y].Temperature;
+        float currTemperature = map.GetTemperature(x, y);
 
-        if (map.MapData.Data[x, y].WaterProximity > 0f || map.MapData.Data[x, y].Precipitation > 0.2f)
+        if (map.GetWaterProximity(x, y) > 0f || map.GetPrecipitation(x, y) > 0.2f)
         {
             return 1f - vegCurveCoefficient * Mathf.Pow(optimumTemperature - currTemperature, 2);
         }
         return 0f;
-    }
-
-    void CreateTiledMesh(Map map)
-    {
-        int tileSize = 100; // Or another size within the 65,536 limit
-        int width = map.GetLength(0);
-        int height = map.GetLength(1);
-        float scale = 10f;
-
-        for (int y = 0; y < height; y += tileSize)
-        {
-            for (int x = 0; x < width; x += tileSize)
-            {
-                int currentTileWidth = Mathf.Min(tileSize, width - x);
-                int currentTileHeight = Mathf.Min(tileSize, height - y);
-                CreateMeshTile(map, x, y, currentTileWidth, currentTileHeight, scale);
-            }
-        }
-    }
-
-    void CreateMeshTile(Map map, int startX, int startY, int tileWidth, int tileHeight, float scale)
-    {
-        Mesh tileMesh = new Mesh();
-        Vector3[] vertices = new Vector3[tileWidth * tileHeight];
-        int[] triangles = new int[(tileWidth - 1) * (tileHeight - 1) * 6];
-
-        // Generate vertices and triangles for this tile
-        for (int z = 0; z < tileHeight; z++)
-        {
-            for (int x = 0; x < tileWidth; x++)
-            {
-                float y = map.MapData.Data[startX + x, startY + z].Height * scale;
-                vertices[z * tileWidth + x] = new Vector3(startX + x, y, startY + z);
-            }
-        }
-
-        // Set up triangles (similar to your existing code)
-        // Generate triangles
-        int triIndex = 0;
-        for (int z = 0; z < tileHeight - 1; z++)
-        {
-            for (int x = 0; x < tileWidth - 1; x++)
-            {
-                int topLeft = z * tileWidth + x;
-                int bottomLeft = (z + 1) * tileWidth + x;
-
-                // Triangle 1
-                triangles[triIndex] = topLeft;
-                triangles[triIndex + 1] = bottomLeft;
-                triangles[triIndex + 2] = topLeft + 1;
-
-                // Triangle 2
-                triangles[triIndex + 3] = bottomLeft;
-                triangles[triIndex + 4] = bottomLeft + 1;
-                triangles[triIndex + 5] = topLeft + 1;
-
-                triIndex += 6;
-            }
-        }
-
-        tileMesh.vertices = vertices;
-        tileMesh.triangles = triangles;
-        tileMesh.RecalculateNormals();
-
-        // Assign this tileMesh to a new GameObject or part of a parent object
-        GameObject tileObject = new GameObject($"Tile_{startX}_{startY}");
-        tileObject.AddComponent<MeshFilter>().mesh = tileMesh;
-        MeshRenderer renderer = tileObject.AddComponent<MeshRenderer>();
-        renderer.material = yourMaterial;
-        tileObject.transform.parent = map.transform; // Optional: attach to a parent
     }
 }
 
