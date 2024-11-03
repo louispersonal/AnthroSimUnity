@@ -10,29 +10,13 @@ using Color = UnityEngine.Color;
 
 public class MapGenerator : MonoBehaviour
 {
-    [SerializeField]
-    int _minimumMountainRadius;
-
-    [SerializeField]
-    int _maximumMountainRadius;
-
-    [SerializeField]
-    int _maxMountainsPerRange;
-
-    [SerializeField]
-    float _chanceOfRiverSourceOnMountain;
+    public GenerationParameters GenerationParameters;
 
     LandwaterAtlas _landwaterAtlas;
-    LandwaterAtlas LandwaterAtlas { get { if (_landwaterAtlas == null) { _landwaterAtlas = FindObjectOfType<LandwaterAtlas>(); } return _landwaterAtlas; } set { _landwaterAtlas = value; } }
+    public LandwaterAtlas LandwaterAtlas { get { if (_landwaterAtlas == null) { _landwaterAtlas = FindObjectOfType<LandwaterAtlas>(); } return _landwaterAtlas; } set { _landwaterAtlas = value; } }
 
     GeoFeatureAtlas _geoFeatureAtlas;
-    GeoFeatureAtlas GeoFeatureAtlas { get { if (_geoFeatureAtlas == null) { _geoFeatureAtlas = FindObjectOfType<GeoFeatureAtlas>(); } return _geoFeatureAtlas; } set { _geoFeatureAtlas = value; } }
-
-    RandomVectorWalk _randomVectorWalk;
-
-    RandomVectorWalk RandomVectorWalk { get { if (_randomVectorWalk == null) { _randomVectorWalk = FindObjectOfType<RandomVectorWalk>(); } return _randomVectorWalk; } set { _randomVectorWalk = value; } }
-
-    private Mesh mesh;
+    public GeoFeatureAtlas GeoFeatureAtlas { get { if (_geoFeatureAtlas == null) { _geoFeatureAtlas = FindObjectOfType<GeoFeatureAtlas>(); } return _geoFeatureAtlas; } set { _geoFeatureAtlas = value; } }
 
     [SerializeField]
     Material yourMaterial;
@@ -88,7 +72,7 @@ public class MapGenerator : MonoBehaviour
 
         for (int m = 0; m < 10; m++)
         {
-            AddMountainRange(map, bounds);
+            //AddMountainRange(map, bounds);
         }
 
 
@@ -357,140 +341,6 @@ public class MapGenerator : MonoBehaviour
         // Recalculate normals and bounds for proper lighting and rendering
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
-    }
-
-    void AddMountainRange(Map map, Rectangle continentBounds)
-    {
-        int mountainRadius = Random.Range(_minimumMountainRadius, _maximumMountainRadius);
-        Vector2Int firstMountainPeak = FindMountainPeak(map, continentBounds, mountainRadius);
-        int numMountains = 1;
-        float peakHeight = 1f;
-        AddMountain(map, firstMountainPeak,  mountainRadius, peakHeight);
-        Vector2 rangeDirection = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f));
-        rangeDirection = rangeDirection.normalized;
-        while (CheckSpaceForMountain(map, firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2))), mountainRadius) && numMountains < _maxMountainsPerRange)
-        {
-            AddMountain(map, firstMountainPeak, mountainRadius, peakHeight);
-            numMountains++;
-            firstMountainPeak = firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2)));
-        }
-    }
-
-    void AddMountain(Map map, Vector2Int peakLocation, int mountainRadius, float peakHeight)
-    {
-        map.SetHeight(peakLocation.x, peakLocation.y, peakHeight);
-        map.SetGeoFeatureType(peakLocation.x, peakLocation.y, GeoFeatureType.Mountain);
-        int mountainID = GeoFeatureAtlas.GetAvailableMountainID();
-        map.SetGeoFeatureID(peakLocation.x, peakLocation.y, mountainID);
-        FormMountain(map, peakLocation, mountainRadius, mountainID, peakHeight);
-        if (Random.Range(0f, 1f) < _chanceOfRiverSourceOnMountain)
-        {
-            AddRiver(map, peakLocation);
-        }
-    }
-
-    void FormMountain(Map map, Vector2Int peakLocation, int mountainRadius, int mountainID, float peakHeight)
-    {
-        // Coefficients for controlling the spread of the parabola
-        float a = 1.0f, b = 1.0f;
-
-        // Iterate over every element in the 2D array
-        for (int y = peakLocation.y - mountainRadius; y < peakLocation.y + mountainRadius; y++)
-        {
-            for (int x = peakLocation.x - mountainRadius; x < peakLocation.x + mountainRadius; x++)
-            {
-                // Calculate the distance from the center of the peak
-                float dx = ((float)x - (float)peakLocation.x);
-                float dy = ((float)y - (float)peakLocation.y);
-
-                // Apply the parabolic formula
-                float value = peakHeight - ((a * dx * dx + b * dy * dy) / (mountainRadius * mountainRadius));
-
-                // Clamp the value between minHeight and maxHeight
-                value = Mathf.Max(map.GetHeight(x, y), Mathf.Min(peakHeight, value));
-
-                // Add this peak value to the array
-                map.SetHeight(x, y, value);
-                map.SetGeoFeatureType(x, y, GeoFeatureType.Mountain);
-                map.SetGeoFeatureID(x, y, mountainID);
-            }
-        }
-    }
-
-    Vector2Int FindMountainPeak(Map map, Rectangle continentBounds, int mountainRadius)
-    {
-        bool spaceForMountain;
-        Vector2Int randomPoint;
-        do
-        {
-            // pick random point
-            randomPoint = new Vector2Int(Random.Range(continentBounds.X_lo, continentBounds.X_hi), Random.Range(continentBounds.X_lo, continentBounds.X_hi));
-            spaceForMountain = CheckSpaceForMountain(map, randomPoint, mountainRadius);
-        } while (!spaceForMountain);
-        return randomPoint;
-    }
-
-    bool CheckSpaceForMountain(Map map, Vector2Int peakLocation, int mountainRadius)
-    {
-        bool roomOnLand = map.GetLandWaterType(peakLocation.x + mountainRadius, peakLocation.y) == LandWaterType.Continent
-            && map.GetLandWaterType(peakLocation.x - mountainRadius, peakLocation.y) == LandWaterType.Continent
-            && map.GetLandWaterType(peakLocation.x, peakLocation.y + mountainRadius) == LandWaterType.Continent
-            && map.GetLandWaterType(peakLocation.x, peakLocation.y - mountainRadius) == LandWaterType.Continent;
-
-        bool noConflictingFeature = map.GetGeoFeatureType(peakLocation.x + mountainRadius, peakLocation.y) == GeoFeatureType.None
-            && map.GetGeoFeatureType(peakLocation.x - mountainRadius, peakLocation.y) == GeoFeatureType.None
-            && map.GetGeoFeatureType(peakLocation.x, peakLocation.y + mountainRadius) == GeoFeatureType.None
-            && map.GetGeoFeatureType(peakLocation.x, peakLocation.y - mountainRadius) == GeoFeatureType.None;
-
-        return roomOnLand && noConflictingFeature;
-    }
-
-    void AddRiver(Map map, Vector2Int sourceLocation)
-    {
-        Vector2Int riverEndLocation = FindClosestCoastline(map, sourceLocation);
-        int riverID = LandwaterAtlas.GetAvailableRiverID();
-
-        int numPoints = 20;
-        List<Vector2Int> points = new List<Vector2Int>();
-        for (int c = 0; c < numPoints; c++)
-        {
-            points.Add(new Vector2Int(0, 0));
-        }
-
-        points[0] = sourceLocation;
-        points[numPoints - 1] = riverEndLocation;
-
-        RandomVectorWalk.SubdivideRecursive(points, 0, numPoints - 1, 30f);
-
-        RandomVectorWalk.InterpolateRiverPoints(map, points, riverID);
-    }
-
-    Vector2Int FindClosestCoastline(Map map, Vector2Int point)
-    {
-        float maxSearchDistance = 499f;
-        Vector2Int currentClosestPoint = new Vector2Int(0, 0);
-        Vector2Int currentPoint = new Vector2Int(0, 0);
-        for (float angle = 0f; angle < 2 * Mathf.PI; angle += Mathf.PI / 6)
-        {
-            for(float range = 0f; range < maxSearchDistance; range++)
-            {
-                currentPoint.x = point.x + (int)(range * Mathf.Cos(angle));
-                currentPoint.y = point.y + (int)(range * Mathf.Sin(angle));
-                if (currentPoint.x < map.GetLength(0) && currentPoint.x >= 0 && currentPoint.y < map.GetLength(1) && currentPoint.y >= 0)
-                {
-                    if (map.GetLandWaterType(currentPoint.x, currentPoint.y) == LandWaterType.Ocean)
-                    {
-                        float distanceToCurrent = Vector2Int.Distance(point, currentPoint);
-                        float distanceToClosest = Vector2Int.Distance(point, currentClosestPoint);
-                        if (distanceToCurrent < distanceToClosest)
-                        {
-                            currentClosestPoint = currentPoint;
-                        }
-                    }
-                }
-            }
-        }
-        return currentClosestPoint;
     }
 
     void CloudPass(Map map)

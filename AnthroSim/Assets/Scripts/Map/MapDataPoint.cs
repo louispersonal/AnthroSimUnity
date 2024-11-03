@@ -30,19 +30,3 @@ public class MapDataPoint
         HighVegetation = 0f;
     }
 }
-
-public enum LandWaterType
-{
-    Ocean,
-    Continent,
-    River,
-    Lake
-}
-
-public enum GeoFeatureType
-{
-    None,
-    Mountain,
-    Valley,
-    Volcano
-}

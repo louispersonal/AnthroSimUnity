@@ -7,9 +7,7 @@ public class Map : MonoBehaviour
 {
     private MapData _mapData;
 
-    public MeshFilter PlaneMesh;
-
-    public MeshRenderer PlaneRenderer;
+    private MeshRenderer _planeRenderer;
 
     public Dictionary<MapModes, Texture2D> Textures;
 
@@ -18,9 +16,16 @@ public class Map : MonoBehaviour
 
     MapModes _currentMapMode;
 
+    [SerializeField]
+    int _kilometersPerPoint;
+
+    public int KilometersPerPoint { get { return _kilometersPerPoint; } }
+
     // Start is called before the first frame update
     void Start()
     {
+        _planeRenderer = GetComponent<MeshRenderer>();
+
         _currentMapMode = MapModes.Normal;
         Textures = new Dictionary<MapModes, Texture2D>();
     }
@@ -42,7 +47,7 @@ public class Map : MonoBehaviour
 
     public void SetMapMode(MapModes mode)
     {
-        PlaneRenderer.material.mainTexture = Textures[mode];
+        _planeRenderer.material.mainTexture = Textures[mode];
     }
 
     public void AddMapMode(MapModes mode)
@@ -170,13 +175,4 @@ public class Map : MonoBehaviour
     {
         _mapData.Data[x, z].HighVegetation = highVegetation;
     }
-}
-
-public enum MapModes
-{
-    Normal,
-    Temperature,
-    Precipitation,
-    LowVegetation,
-    HighVegetation
 }
