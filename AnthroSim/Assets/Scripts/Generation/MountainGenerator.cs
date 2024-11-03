@@ -4,16 +4,16 @@ using UnityEngine;
 
 public static class MountainGenerator
 {
-    private static void AddMountainRange(MapGenerator mapGenerator, Map map, Rectangle continentBounds)
+    public static void AddMountainRange(MapGenerator mapGenerator, Map map, Rectangle continentBounds)
     {
-        int mountainRadius = Random.Range(mapGenerator.GenerationParameters._minimumMountainRadius, mapGenerator.GenerationParameters._maximumMountainRadius);
+        int mountainRadius = Random.Range(mapGenerator.GenerationParameters.MinimumMountainRadius, mapGenerator.GenerationParameters.MaximumMountainRadius);
         Vector2Int firstMountainPeak = FindMountainPeak(map, continentBounds, mountainRadius);
         int numMountains = 1;
         float peakHeight = 1f;
         AddMountain(mapGenerator, map, firstMountainPeak, mountainRadius, peakHeight);
         Vector2 rangeDirection = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f));
         rangeDirection = rangeDirection.normalized;
-        while (CheckSpaceForMountain(map, firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2))), mountainRadius) && numMountains < mapGenerator.GenerationParameters._maxMountainsPerRange)
+        while (CheckSpaceForMountain(map, firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2))), mountainRadius) && numMountains < mapGenerator.GenerationParameters.MaxMountainsPerRange)
         {
             AddMountain(mapGenerator, map, firstMountainPeak, mountainRadius, peakHeight);
             numMountains++;
@@ -28,7 +28,7 @@ public static class MountainGenerator
         int mountainID = mapGenerator.GeoFeatureAtlas.GetAvailableMountainID();
         map.SetGeoFeatureID(peakLocation.x, peakLocation.y, mountainID);
         FormMountain(map, peakLocation, mountainRadius, mountainID, peakHeight);
-        if (Random.Range(0f, 1f) < mapGenerator.GenerationParameters._chanceOfRiverSourceOnMountain)
+        if (Random.Range(0f, 1f) < mapGenerator.GenerationParameters.ChanceOfRiverSourceOnMountain)
         {
             RiverGenerator.AddRiver(mapGenerator, map, peakLocation);
         }

@@ -12,3 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92dcf6d05d808554f87632f6d314c181, type: 3}
   m_Name: GenerationParameters
   m_EditorClassIdentifier: 
+  WorldSizeKilometers: 40000
+  KilometersPerWorldUnit: 40
+  NumContinents: 1
+  MinimumMountainRadius: 10
+  MaximumMountainRadius: 15
+  MinimumValleyRadius: 10
+  MaximumValleyRadius: 15
+  MaxMountainsPerRange: 10
+  ChanceOfRiverSourceOnMountain: 0.2
+  NumRiverVertices: 20
+  MaxRiverDisplacementAngle: 30

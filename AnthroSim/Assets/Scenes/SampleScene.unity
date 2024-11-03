@@ -1418,7 +1418,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d47e9f72df6ba3f4b973cda776610824, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _generationParameters: {fileID: 0}
+  GenerationParameters: {fileID: 11400000, guid: 6462bddfb3794ca4f970d375abedeb59,
+    type: 2}
   yourMaterial: {fileID: 2100000, guid: ca99b28d740bf7e4ba0bd76c42a92851, type: 2}
   _planeMesh: {fileID: 1100144604}
   _planeRenderer: {fileID: 1100144603}

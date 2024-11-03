@@ -1,0 +1,217 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public static class ContinentGenerator
+{
+    public static List<Rectangle> GetAllContinentBounds(Map map, int numContinents)
+    {
+        List<Rectangle> rectangles = new List<Rectangle>();
+
+        int horizontalSlices = 1;
+        int verticalSlices = 1;
+        int step = 0;
+        while (horizontalSlices * verticalSlices < numContinents)
+        {
+            if (step % 2 == 0)
+            {
+                horizontalSlices++;
+            }
+            else
+            {
+                verticalSlices++;
+            }
+        }
+
+        int edgeOffset = map.GetLength(0) / 5;
+
+        int continentWidth = (map.GetLength(0) - edgeOffset * 2) / horizontalSlices;
+        int continentHeight = (map.GetLength(1) - edgeOffset * 2) / verticalSlices;
+
+        for (int h = 0; h < horizontalSlices; h++)
+        {
+            for (int v = 0; v < verticalSlices; v++)
+            {
+                rectangles.Add(new Rectangle(edgeOffset + (h * continentWidth), edgeOffset + ((h + 1) * continentWidth), edgeOffset + (v * continentHeight), edgeOffset + ((v + 1) * continentHeight)));
+            }
+        }
+
+        return rectangles;
+    }
+
+    public static void CreateContinent(MapGenerator mapGenerator, Map map, Rectangle bounds)
+    {
+        int continentID = mapGenerator.LandwaterAtlas.GetAvailableContinentID();
+        Vector2 startPoint = new Vector2(bounds.X_lo, bounds.Y_lo);
+        GenerateOutline(map, bounds, startPoint, continentID);
+        Vector2 containingPoint = FindContainingPoint(bounds);
+        FloodFill(map, containingPoint, continentID);
+        AddPerlinNoise(map);
+
+        for (int m = 0; m < 10; m++)
+        {
+            MountainGenerator.AddMountainRange(mapGenerator, map, bounds);
+        }
+    }
+
+    public static void AddPerlinNoise(Map map)
+    {
+        int width = map.GetLength(0);
+        int height = map.GetLength(1);
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                float displacement = CalculateHeight(x, y, width, height) * 0.5f;
+                map.SetHeight(x, y, map.GetHeight(x, y) + displacement);
+            }
+        }
+
+    }
+    public static float CalculateHeight(int x, int y, int width, int height)
+    {
+        float scale = 20f;
+        float xCoord = (float)x / width * scale;
+        float yCoord = (float)y / height * scale;
+
+        return Mathf.PerlinNoise(xCoord, yCoord);
+    }
+
+    public static Vector2 FindContainingPoint(Rectangle bounds)
+    {
+        return new Vector2(((bounds.X_hi - bounds.X_lo) / 2) + bounds.X_lo, ((bounds.Y_hi - bounds.Y_lo) / 2) + bounds.Y_lo);
+    }
+
+    public static void GenerateOutline(Map map, Rectangle bounds, Vector2 startPoint, int continentID)
+    {
+        float pixelValue = 0.5f;
+
+        int rows = map.GetLength(0);
+        int cols = map.GetLength(1);
+        int x = (int)startPoint.x;
+        int y = (int)startPoint.y;
+        map.SetHeight(x, y, pixelValue);
+
+        List<Vector2> cardinalDirections = new List<Vector2>();
+        cardinalDirections.Add(new Vector2(1, 0));
+        cardinalDirections.Add(new Vector2(0, 1));
+        cardinalDirections.Add(new Vector2(-1, 0));
+        cardinalDirections.Add(new Vector2(0, -1));
+
+        // left
+        while (x < bounds.X_hi)
+        {
+            Vector2 step = RotateVectorRandomly(cardinalDirections[0]);
+            if (CheckStepInBounds(x, y, bounds, step))
+            {
+                x += (int)step.x;
+                y += (int)step.y;
+                map.SetHeight(x, y, pixelValue);
+                map.SetLandWaterType(x, y, LandWaterType.Continent);
+                map.SetLandWaterFeatureID(x, y, continentID);
+            }
+        }
+
+
+        // up
+        while (y < bounds.Y_hi)
+        {
+            Vector2 step = RotateVectorRandomly(cardinalDirections[1]);
+            if (CheckStepInBounds(x, y, bounds, step))
+            {
+                x += (int)step.x;
+                y += (int)step.y;
+                map.SetHeight(x, y, pixelValue);
+                map.SetLandWaterType(x, y, LandWaterType.Continent);
+                map.SetLandWaterFeatureID(x, y, continentID);
+            }
+        }
+
+        // right
+        while (x > bounds.X_lo)
+        {
+            Vector2 step = RotateVectorRandomly(cardinalDirections[2]);
+            if (CheckStepInBounds(x, y, bounds, step))
+            {
+                x += (int)step.x;
+                y += (int)step.y;
+                map.SetHeight(x, y, pixelValue);
+                map.SetLandWaterType(x, y, LandWaterType.Continent);
+                map.SetLandWaterFeatureID(x, y, continentID);
+            }
+        }
+
+        // down
+        while (y > bounds.Y_lo)
+        {
+            Vector2 step = RotateVectorRandomly(cardinalDirections[3]);
+            if (CheckStepInBounds(x, y, bounds, step))
+            {
+                x += (int)step.x;
+                y += (int)step.y;
+                map.SetHeight(x, y, pixelValue);
+                map.SetLandWaterType(x, y, LandWaterType.Continent);
+                map.SetLandWaterFeatureID(x, y, continentID);
+            }
+        }
+    }
+
+    public static Vector2 RotateVectorRandomly(Vector2 vector)
+    {
+        int random = Random.Range(0, 3);
+        switch (random)
+        {
+            case 0:
+                return vector;
+            case 1:
+                return new Vector2(vector.y * -1, vector.x);
+            case 2:
+                return new Vector2(vector.y, vector.x * -1);
+        }
+        return vector;
+    }
+
+    public static bool CheckStepInBounds(int x, int y, Rectangle bounds, Vector2 step)
+    {
+        x += (int)step.x;
+        y += (int)step.y;
+        if (y < bounds.Y_lo || y > bounds.Y_hi || x < bounds.X_lo || x > bounds.X_hi)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public static void FloodFill(Map map, Vector2 containintPoint, int continentID)
+    {
+        // Get the dimensions of the grid
+        int rows = map.GetLength(0);
+        int cols = map.GetLength(1);
+
+        int startX = (int)containintPoint.x;
+        int startY = (int)containintPoint.y;
+
+        // Use a stack to simulate the recursion
+        Stack<(int x, int y)> stack = new Stack<(int x, int y)>();
+        stack.Push((startX, startY));
+
+        while (stack.Count > 0)
+        {
+            // Pop a point from the stack
+            var (x, y) = stack.Pop();
+
+            // Fill the point with 0.5
+            map.SetHeight(x, y, 0.5f);
+            map.SetLandWaterType(x, y, LandWaterType.Continent);
+            map.SetLandWaterFeatureID(x, y, continentID);
+
+            // Check all four directions and push valid points onto the stack
+            if (x + 1 < rows && map.GetHeight(x + 1, y) == 0) stack.Push((x + 1, y));  // Down
+            if (x - 1 >= 0 && map.GetHeight(x - 1, y) == 0) stack.Push((x - 1, y));    // Up
+            if (y + 1 < cols && map.GetHeight(x, y + 1) == 0) stack.Push((x, y + 1));  // Right
+            if (y - 1 >= 0 && map.GetHeight(x, y - 1) == 0) stack.Push((x, y - 1));    // Left
+        }
+    }
+
+}

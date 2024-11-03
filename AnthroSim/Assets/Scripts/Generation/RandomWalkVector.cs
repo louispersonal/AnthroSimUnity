@@ -53,7 +53,7 @@ public static class RandomWalkVector
     private static Vector2Int DisplacePoint(Vector2Int fixedPoint, Vector2Int displacePoint, float maxAngleDisplacement)
     {
         Vector2Int vector = displacePoint - fixedPoint;
-        float displacementAngle = UnityEngine.Random.Range(-maxAngleDisplacement, maxAngleDisplacement);
+        float displacementAngle = Random.Range(-maxAngleDisplacement, maxAngleDisplacement);
         Vector2Int displacementVector = RotateVector2Int(vector, displacementAngle);
         return fixedPoint + displacementVector;
     }
