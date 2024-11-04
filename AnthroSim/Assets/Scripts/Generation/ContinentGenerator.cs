@@ -42,8 +42,7 @@ public static class ContinentGenerator
     public static void CreateContinent(MapGenerator mapGenerator, Map map, Rectangle bounds)
     {
         int continentID = mapGenerator.LandwaterAtlas.GetAvailableContinentID();
-        Vector2 startPoint = new Vector2(bounds.X_lo, bounds.Y_lo);
-        GenerateOutline(map, bounds, startPoint, continentID);
+        GenerateOutline(map, bounds, continentID);
         Vector2 containingPoint = FindContainingPoint(bounds);
         FloodFill(map, containingPoint, continentID);
         AddPerlinNoise(map, continentID);
@@ -86,77 +85,25 @@ public static class ContinentGenerator
         return new Vector2(((bounds.X_hi - bounds.X_lo) / 2) + bounds.X_lo, ((bounds.Y_hi - bounds.Y_lo) / 2) + bounds.Y_lo);
     }
 
-    public static void GenerateOutline(Map map, Rectangle bounds, Vector2 startPoint, int continentID)
+    public static void GenerateOutline(Map map, Rectangle bounds, int continentID)
     {
-        float pixelValue = 0.5f;
+        // divide bound into 4 quadrants and pick a point in each quadrant
+        List<Vector2Int> corners = new List<Vector2Int>();
+        corners.Add(new Vector2Int(Random.Range(bounds.X_lo, (bounds.X_hi - bounds.X_lo) / 2), Random.Range((bounds.Y_hi - bounds.Y_lo) / 2, bounds.Y_hi)));
+        corners.Add(new Vector2Int(Random.Range((bounds.X_hi - bounds.X_lo) / 2, bounds.X_hi), Random.Range((bounds.Y_hi - bounds.Y_lo) / 2, bounds.Y_hi)));
+        corners.Add(new Vector2Int(Random.Range(bounds.X_lo, (bounds.X_hi - bounds.X_lo) / 2), Random.Range(bounds.Y_lo, (bounds.Y_hi - bounds.Y_lo) / 2)));
+        corners.Add(new Vector2Int(Random.Range((bounds.X_hi - bounds.X_lo) / 2, bounds.X_hi), Random.Range(bounds.Y_lo, (bounds.Y_hi - bounds.Y_lo) / 2)));
 
-        int rows = map.GetLength(0);
-        int cols = map.GetLength(1);
-        int x = (int)startPoint.x;
-        int y = (int)startPoint.y;
-        map.SetHeight(x, y, pixelValue);
+        List<Vector2Int> outline = RandomWalkVector.RandomWalk(corners[0], corners[1], 3, 0f);
+        outline.AddRange(RandomWalkVector.RandomWalk(corners[1], corners[2], 3, 0f));
+        outline.AddRange(RandomWalkVector.RandomWalk(corners[2], corners[3], 3, 0f));
+        outline.AddRange(RandomWalkVector.RandomWalk(corners[3], corners[0], 3, 0f));
 
-        List<Vector2> cardinalDirections = new List<Vector2>();
-        cardinalDirections.Add(new Vector2(1, 0));
-        cardinalDirections.Add(new Vector2(0, 1));
-        cardinalDirections.Add(new Vector2(-1, 0));
-        cardinalDirections.Add(new Vector2(0, -1));
-
-        // left
-        while (x < bounds.X_hi)
+        foreach (Vector2Int outlinePoint in outline)
         {
-            Vector2 step = RotateVectorRandomly(cardinalDirections[0]);
-            if (CheckStepInBounds(x, y, bounds, step))
-            {
-                x += (int)step.x;
-                y += (int)step.y;
-                map.SetHeight(x, y, pixelValue);
-                map.SetLandWaterType(x, y, LandWaterType.Continent);
-                map.SetLandWaterFeatureID(x, y, continentID);
-            }
-        }
-
-
-        // up
-        while (y < bounds.Y_hi)
-        {
-            Vector2 step = RotateVectorRandomly(cardinalDirections[1]);
-            if (CheckStepInBounds(x, y, bounds, step))
-            {
-                x += (int)step.x;
-                y += (int)step.y;
-                map.SetHeight(x, y, pixelValue);
-                map.SetLandWaterType(x, y, LandWaterType.Continent);
-                map.SetLandWaterFeatureID(x, y, continentID);
-            }
-        }
-
-        // right
-        while (x > bounds.X_lo)
-        {
-            Vector2 step = RotateVectorRandomly(cardinalDirections[2]);
-            if (CheckStepInBounds(x, y, bounds, step))
-            {
-                x += (int)step.x;
-                y += (int)step.y;
-                map.SetHeight(x, y, pixelValue);
-                map.SetLandWaterType(x, y, LandWaterType.Continent);
-                map.SetLandWaterFeatureID(x, y, continentID);
-            }
-        }
-
-        // down
-        while (y > bounds.Y_lo)
-        {
-            Vector2 step = RotateVectorRandomly(cardinalDirections[3]);
-            if (CheckStepInBounds(x, y, bounds, step))
-            {
-                x += (int)step.x;
-                y += (int)step.y;
-                map.SetHeight(x, y, pixelValue);
-                map.SetLandWaterType(x, y, LandWaterType.Continent);
-                map.SetLandWaterFeatureID(x, y, continentID);
-            }
+            map.SetHeight(outlinePoint.x, outlinePoint.y, 0.5f);
+            map.SetLandWaterType(outlinePoint.x, outlinePoint.y, LandWaterType.Continent);
+            map.SetLandWaterFeatureID(outlinePoint.x, outlinePoint.y, continentID);
         }
     }
 
