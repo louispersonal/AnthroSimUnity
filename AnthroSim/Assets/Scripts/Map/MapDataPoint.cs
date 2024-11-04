@@ -21,9 +21,9 @@ public class MapDataPoint
         Height = 0f;
         Temperature = 0f;
         LandWaterType = LandWaterType.Ocean;
-        LandWaterFeatureID = 0;
+        LandWaterFeatureID = -1;
         GeoFeatureType = GeoFeatureType.None;
-        GeoFeatureID = 0;
+        GeoFeatureID = -1;
         WaterProximity = 0f;
         Precipitation = 0f;
         LowVegetation = 0f;

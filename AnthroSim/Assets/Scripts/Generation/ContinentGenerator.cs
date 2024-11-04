@@ -46,7 +46,7 @@ public static class ContinentGenerator
         GenerateOutline(map, bounds, startPoint, continentID);
         Vector2 containingPoint = FindContainingPoint(bounds);
         FloodFill(map, containingPoint, continentID);
-        AddPerlinNoise(map);
+        AddPerlinNoise(map, continentID);
 
         for (int m = 0; m < 10; m++)
         {
@@ -54,7 +54,7 @@ public static class ContinentGenerator
         }
     }
 
-    public static void AddPerlinNoise(Map map)
+    public static void AddPerlinNoise(Map map, int continentID)
     {
         int width = map.GetLength(0);
         int height = map.GetLength(1);
@@ -63,8 +63,11 @@ public static class ContinentGenerator
         {
             for (int y = 0; y < height; y++)
             {
-                float displacement = CalculateHeight(x, y, width, height) * 0.5f;
-                map.SetHeight(x, y, map.GetHeight(x, y) + displacement);
+                if (map.GetLandWaterFeatureID(x, y) == continentID)
+                {
+                    float displacement = CalculateHeight(x, y, width, height) * 0.5f;
+                    map.SetHeight(x, y, map.GetHeight(x, y) + displacement);
+                }
             }
         }
 
@@ -207,10 +210,10 @@ public static class ContinentGenerator
             map.SetLandWaterFeatureID(x, y, continentID);
 
             // Check all four directions and push valid points onto the stack
-            if (x + 1 < rows && map.GetHeight(x + 1, y) == 0) stack.Push((x + 1, y));  // Down
-            if (x - 1 >= 0 && map.GetHeight(x - 1, y) == 0) stack.Push((x - 1, y));    // Up
-            if (y + 1 < cols && map.GetHeight(x, y + 1) == 0) stack.Push((x, y + 1));  // Right
-            if (y - 1 >= 0 && map.GetHeight(x, y - 1) == 0) stack.Push((x, y - 1));    // Left
+            if (x + 1 < rows && map.GetLandWaterFeatureID(x + 1, y) != continentID) stack.Push((x + 1, y));  // Down
+            if (x - 1 >= 0 && map.GetLandWaterFeatureID(x - 1, y) != continentID) stack.Push((x - 1, y));    // Up
+            if (y + 1 < cols && map.GetLandWaterFeatureID(x, y + 1) != continentID) stack.Push((x, y + 1));  // Right
+            if (y - 1 >= 0 && map.GetLandWaterFeatureID(x, y - 1) != continentID) stack.Push((x, y - 1));    // Left
         }
     }
 

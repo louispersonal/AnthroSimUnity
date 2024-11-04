@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WorldSizeKilometers: 40000
   KilometersPerWorldUnit: 40
-  NumContinents: 1
+  NumContinents: 2
   MinimumMountainRadius: 10
   MaximumMountainRadius: 15
   MinimumValleyRadius: 10
