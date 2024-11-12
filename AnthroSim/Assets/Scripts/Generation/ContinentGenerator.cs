@@ -87,17 +87,20 @@ public static class ContinentGenerator
 
     public static void GenerateOutline(Map map, Rectangle bounds, int continentID)
     {
+        int x_mid = ((bounds.X_hi - bounds.X_lo) / 2) + bounds.X_lo;
+        int y_mid = ((bounds.Y_hi - bounds.Y_lo) / 2) + bounds.Y_lo;
+
         // divide bound into 4 quadrants and pick a point in each quadrant
         List<Vector2Int> corners = new List<Vector2Int>();
-        corners.Add(new Vector2Int(Random.Range(bounds.X_lo, (bounds.X_hi - bounds.X_lo) / 2), Random.Range((bounds.Y_hi - bounds.Y_lo) / 2, bounds.Y_hi)));
-        corners.Add(new Vector2Int(Random.Range((bounds.X_hi - bounds.X_lo) / 2, bounds.X_hi), Random.Range((bounds.Y_hi - bounds.Y_lo) / 2, bounds.Y_hi)));
-        corners.Add(new Vector2Int(Random.Range(bounds.X_lo, (bounds.X_hi - bounds.X_lo) / 2), Random.Range(bounds.Y_lo, (bounds.Y_hi - bounds.Y_lo) / 2)));
-        corners.Add(new Vector2Int(Random.Range((bounds.X_hi - bounds.X_lo) / 2, bounds.X_hi), Random.Range(bounds.Y_lo, (bounds.Y_hi - bounds.Y_lo) / 2)));
+        corners.Add(new Vector2Int(Random.Range(bounds.X_lo, x_mid), Random.Range(y_mid, bounds.Y_hi)));
+        corners.Add(new Vector2Int(Random.Range(x_mid, bounds.X_hi), Random.Range(y_mid, bounds.Y_hi)));
+        corners.Add(new Vector2Int(Random.Range(x_mid, bounds.X_hi), Random.Range(bounds.Y_lo, y_mid)));
+        corners.Add(new Vector2Int(Random.Range(bounds.X_lo, x_mid), Random.Range(bounds.Y_lo, y_mid)));
 
-        List<Vector2Int> outline = RandomWalkVector.RandomWalk(corners[0], corners[1], 3, 0f);
-        outline.AddRange(RandomWalkVector.RandomWalk(corners[1], corners[2], 3, 0f));
-        outline.AddRange(RandomWalkVector.RandomWalk(corners[2], corners[3], 3, 0f));
-        outline.AddRange(RandomWalkVector.RandomWalk(corners[3], corners[0], 3, 0f));
+        List<Vector2Int> outline = RandomWalkVector.RandomWalk(corners[0], corners[1], 30, 10f);
+        outline.AddRange(RandomWalkVector.RandomWalk(corners[1], corners[2], 30, 10f));
+        outline.AddRange(RandomWalkVector.RandomWalk(corners[2], corners[3], 30, 10f));
+        outline.AddRange(RandomWalkVector.RandomWalk(corners[3], corners[0], 30, 10f));
 
         foreach (Vector2Int outlinePoint in outline)
         {
