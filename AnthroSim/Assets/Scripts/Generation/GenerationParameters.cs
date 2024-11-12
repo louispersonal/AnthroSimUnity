@@ -6,7 +6,7 @@ public class GenerationParameters : ScriptableObject
     public int WorldSizeKilometers;
     public int KilometersPerWorldUnit;
     public int NumContinents;
-    public int NumContinentEdgeVertices;
+    public float NumContinentEdgeVerticesRatio;
     public int MaxContinentEdgeDisplacementAngle;
     public int MinimumMountainRadius;
     public int MaximumMountainRadius;
@@ -14,6 +14,6 @@ public class GenerationParameters : ScriptableObject
     public int MaximumValleyRadius;
     public int MaxMountainsPerRange;
     public float ChanceOfRiverSourceOnMountain;
-    public int NumRiverVertices;
+    public float NumRiverVerticesRatio;
     public float MaxRiverDisplacementAngle;
 }

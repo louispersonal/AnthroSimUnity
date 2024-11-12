@@ -9,7 +9,7 @@ public static class RiverGenerator
         Vector2Int riverEndLocation = FindClosestCoastline(map, sourceLocation);
         int riverID = mapGenerator.LandwaterAtlas.GetAvailableRiverID();
 
-        List<Vector2Int> points = RandomWalkVector.RandomWalk(sourceLocation, riverEndLocation, mapGenerator.GenerationParameters.NumRiverVertices, mapGenerator.GenerationParameters.MaxRiverDisplacementAngle);
+        List<Vector2Int> points = RandomWalkVector.RandomWalk(sourceLocation, riverEndLocation, mapGenerator.GenerationParameters.NumRiverVerticesRatio, mapGenerator.GenerationParameters.MaxRiverDisplacementAngle);
 
         int valleyWidth = Random.Range(mapGenerator.GenerationParameters.MinimumValleyRadius, mapGenerator.GenerationParameters.MaximumValleyRadius);
         int valleyID = mapGenerator.GeoFeatureAtlas.GetAvailableValleyID();

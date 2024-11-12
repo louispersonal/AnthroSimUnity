@@ -97,10 +97,10 @@ public static class ContinentGenerator
         corners.Add(new Vector2Int(Random.Range(x_mid, bounds.X_hi), Random.Range(bounds.Y_lo, y_mid)));
         corners.Add(new Vector2Int(Random.Range(bounds.X_lo, x_mid), Random.Range(bounds.Y_lo, y_mid)));
 
-        List<Vector2Int> outline = RandomWalkVector.RandomWalk(corners[0], corners[1], mapGenerator.GenerationParameters.NumContinentEdgeVertices, mapGenerator.GenerationParameters.MaxContinentEdgeDisplacementAngle);
-        outline.AddRange(RandomWalkVector.RandomWalk(corners[1], corners[2], mapGenerator.GenerationParameters.NumContinentEdgeVertices, mapGenerator.GenerationParameters.MaxContinentEdgeDisplacementAngle));
-        outline.AddRange(RandomWalkVector.RandomWalk(corners[2], corners[3], mapGenerator.GenerationParameters.NumContinentEdgeVertices, mapGenerator.GenerationParameters.MaxContinentEdgeDisplacementAngle));
-        outline.AddRange(RandomWalkVector.RandomWalk(corners[3], corners[0], mapGenerator.GenerationParameters.NumContinentEdgeVertices, mapGenerator.GenerationParameters.MaxContinentEdgeDisplacementAngle));
+        List<Vector2Int> outline = RandomWalkVector.RandomWalk(corners[0], corners[1], mapGenerator.GenerationParameters.NumContinentEdgeVerticesRatio, mapGenerator.GenerationParameters.MaxContinentEdgeDisplacementAngle);
+        outline.AddRange(RandomWalkVector.RandomWalk(corners[1], corners[2], mapGenerator.GenerationParameters.NumContinentEdgeVerticesRatio, mapGenerator.GenerationParameters.MaxContinentEdgeDisplacementAngle));
+        outline.AddRange(RandomWalkVector.RandomWalk(corners[2], corners[3], mapGenerator.GenerationParameters.NumContinentEdgeVerticesRatio, mapGenerator.GenerationParameters.MaxContinentEdgeDisplacementAngle));
+        outline.AddRange(RandomWalkVector.RandomWalk(corners[3], corners[0], mapGenerator.GenerationParameters.NumContinentEdgeVerticesRatio, mapGenerator.GenerationParameters.MaxContinentEdgeDisplacementAngle));
 
         foreach (Vector2Int outlinePoint in outline)
         {

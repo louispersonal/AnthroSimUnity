@@ -15,7 +15,7 @@ MonoBehaviour:
   WorldSizeKilometers: 40000
   KilometersPerWorldUnit: 40
   NumContinents: 2
-  NumContinentEdgeVertices: 100
+  NumContinentEdgeVerticesRatio: 0.8
   MaxContinentEdgeDisplacementAngle: 30
   MinimumMountainRadius: 10
   MaximumMountainRadius: 15
@@ -23,5 +23,5 @@ MonoBehaviour:
   MaximumValleyRadius: 15
   MaxMountainsPerRange: 10
   ChanceOfRiverSourceOnMountain: 0.2
-  NumRiverVertices: 20
+  NumRiverVerticesRatio: 0.8
   MaxRiverDisplacementAngle: 30
