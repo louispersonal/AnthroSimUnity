@@ -6,6 +6,12 @@ public static class RandomWalkVector
 {
     public static List<Vector2Int> RandomWalk(Vector2Int startPoint, Vector2Int endPoint, int numVertices, float maxAngleDisplacement)
     {
+        if (Vector2Int.Distance(endPoint, startPoint) < numVertices)
+        {
+            Debug.Log("Too many vertices for random walk, auto-reducing");
+            numVertices = Mathf.FloorToInt(Vector2Int.Distance(endPoint, startPoint));
+        }
+
         List<Vector2Int> vertices = new List<Vector2Int>();
         for (int c = 0; c < numVertices; c++)
         {

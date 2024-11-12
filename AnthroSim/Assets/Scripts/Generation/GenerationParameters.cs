@@ -6,6 +6,8 @@ public class GenerationParameters : ScriptableObject
     public int WorldSizeKilometers;
     public int KilometersPerWorldUnit;
     public int NumContinents;
+    public int NumContinentEdgeVertices;
+    public int MaxContinentEdgeDisplacementAngle;
     public int MinimumMountainRadius;
     public int MaximumMountainRadius;
     public int MinimumValleyRadius;

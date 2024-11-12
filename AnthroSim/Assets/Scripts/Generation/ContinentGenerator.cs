@@ -42,7 +42,7 @@ public static class ContinentGenerator
     public static void CreateContinent(MapGenerator mapGenerator, Map map, Rectangle bounds)
     {
         int continentID = mapGenerator.LandwaterAtlas.GetAvailableContinentID();
-        GenerateOutline(map, bounds, continentID);
+        GenerateOutline(mapGenerator, map, bounds, continentID);
         Vector2 containingPoint = FindContainingPoint(bounds);
         FloodFill(map, containingPoint, continentID);
         AddPerlinNoise(map, continentID);
@@ -85,7 +85,7 @@ public static class ContinentGenerator
         return new Vector2(((bounds.X_hi - bounds.X_lo) / 2) + bounds.X_lo, ((bounds.Y_hi - bounds.Y_lo) / 2) + bounds.Y_lo);
     }
 
-    public static void GenerateOutline(Map map, Rectangle bounds, int continentID)
+    public static void GenerateOutline(MapGenerator mapGenerator, Map map, Rectangle bounds, int continentID)
     {
         int x_mid = ((bounds.X_hi - bounds.X_lo) / 2) + bounds.X_lo;
         int y_mid = ((bounds.Y_hi - bounds.Y_lo) / 2) + bounds.Y_lo;
@@ -97,10 +97,10 @@ public static class ContinentGenerator
         corners.Add(new Vector2Int(Random.Range(x_mid, bounds.X_hi), Random.Range(bounds.Y_lo, y_mid)));
         corners.Add(new Vector2Int(Random.Range(bounds.X_lo, x_mid), Random.Range(bounds.Y_lo, y_mid)));
 
-        List<Vector2Int> outline = RandomWalkVector.RandomWalk(corners[0], corners[1], 30, 10f);
-        outline.AddRange(RandomWalkVector.RandomWalk(corners[1], corners[2], 30, 10f));
-        outline.AddRange(RandomWalkVector.RandomWalk(corners[2], corners[3], 30, 10f));
-        outline.AddRange(RandomWalkVector.RandomWalk(corners[3], corners[0], 30, 10f));
+        List<Vector2Int> outline = RandomWalkVector.RandomWalk(corners[0], corners[1], mapGenerator.GenerationParameters.NumContinentEdgeVertices, mapGenerator.GenerationParameters.MaxContinentEdgeDisplacementAngle);
+        outline.AddRange(RandomWalkVector.RandomWalk(corners[1], corners[2], mapGenerator.GenerationParameters.NumContinentEdgeVertices, mapGenerator.GenerationParameters.MaxContinentEdgeDisplacementAngle));
+        outline.AddRange(RandomWalkVector.RandomWalk(corners[2], corners[3], mapGenerator.GenerationParameters.NumContinentEdgeVertices, mapGenerator.GenerationParameters.MaxContinentEdgeDisplacementAngle));
+        outline.AddRange(RandomWalkVector.RandomWalk(corners[3], corners[0], mapGenerator.GenerationParameters.NumContinentEdgeVertices, mapGenerator.GenerationParameters.MaxContinentEdgeDisplacementAngle));
 
         foreach (Vector2Int outlinePoint in outline)
         {
