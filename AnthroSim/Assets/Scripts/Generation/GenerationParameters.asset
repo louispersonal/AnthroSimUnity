@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: GenerationParameters
   m_EditorClassIdentifier: 
   WorldSizeKilometers: 40000
+  KilometersPerDataPoint: 40
   KilometersPerWorldUnit: 40
+  VertexSizeKilometers: 40
   NumContinents: 2
   NumContinentEdgeVerticesRatio: 0.8
   MaxContinentEdgeDisplacementAngle: 30

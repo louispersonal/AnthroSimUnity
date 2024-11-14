@@ -4,7 +4,9 @@ using UnityEngine;
 public class GenerationParameters : ScriptableObject
 {
     public int WorldSizeKilometers;
+    public int KilometersPerDataPoint;
     public int KilometersPerWorldUnit;
+    public int VertexSizeKilometers;
     public int NumContinents;
     public float NumContinentEdgeVerticesRatio;
     public int MaxContinentEdgeDisplacementAngle;

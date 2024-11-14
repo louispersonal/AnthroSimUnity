@@ -22,19 +22,20 @@ public class MapGenerator : MonoBehaviour
     Material yourMaterial;
 
     [SerializeField]
-    MeshFilter _planeMesh;
+    MapTile _mapTilePrefab;
 
-    [SerializeField]
-    MeshRenderer _planeRenderer;
+    private const int MAX_VERTICES_WIDTH_PLANE = 256;
 
     void Start()
     {
 
     }
 
-    public void GenerateMap(Map map, int width, int height)
+    public void GenerateMap(Map map)
     {
-        map.InitializeMap(width, height);
+        int worldWidth = GenerationParameters.WorldSizeKilometers / GenerationParameters.KilometersPerDataPoint;
+
+        map.InitializeMap(worldWidth, worldWidth);
 
         List<Rectangle> continentBounds = ContinentGenerator.GetAllContinentBounds(map, GenerationParameters.NumContinents);
 
@@ -43,10 +44,26 @@ public class MapGenerator : MonoBehaviour
             ContinentGenerator.CreateContinent(this, map, continentBound);
         }
 
-        float planeWorldWidth = 100;
-        float planeWorldHeight = 100;
-        _planeMesh.mesh = CreatePlane(planeWorldWidth, planeWorldHeight, (width/5) - 1, (height/5) - 1);
-        ModifyVertices(map, _planeMesh.mesh);
+        int widthVertices = GenerationParameters.WorldSizeKilometers / GenerationParameters.VertexSizeKilometers;
+
+        int numPlanes = Mathf.CeilToInt((float)widthVertices / (float)MAX_VERTICES_WIDTH_PLANE);
+
+        float tileWidth = (float)worldWidth / (float)numPlanes;
+
+        int planeWorldWidth = widthVertices;
+        int planeWorldHeight = widthVertices;
+
+        map.MapTiles = new MapTile[numPlanes, numPlanes];
+
+        for (int x = 0; x < numPlanes; x++)
+        {
+            for (int y = 0; y < numPlanes; y++)
+            {
+                map.MapTiles[x, y] = Instantiate(_mapTilePrefab);
+                map.MapTiles[x, y].PlaneMesh.mesh = CreatePlane(tileWidth, tileWidth, MAX_VERTICES_WIDTH_PLANE, MAX_VERTICES_WIDTH_PLANE);
+                ModifyVertices(map, map.MapTiles[x, y].PlaneMesh.mesh);
+            }
+        }
 
         map.AddMapMode(MapModes.Normal);
         map.AddMapMode(MapModes.Temperature);
