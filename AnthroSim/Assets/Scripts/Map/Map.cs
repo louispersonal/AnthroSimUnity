@@ -17,9 +17,9 @@ public class Map : MonoBehaviour
     MapModes _currentMapMode;
 
     [SerializeField]
-    int _kilometersPerPoint;
+    public MapTile MapTilePrefab;
 
-    public int KilometersPerPoint { get { return _kilometersPerPoint; } }
+    public MapTile[,] MapTiles;
 
     // Start is called before the first frame update
     void Start()

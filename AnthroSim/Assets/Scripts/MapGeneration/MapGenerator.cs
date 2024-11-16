@@ -18,15 +18,6 @@ public class MapGenerator : MonoBehaviour
     GeoFeatureAtlas _geoFeatureAtlas;
     public GeoFeatureAtlas GeoFeatureAtlas { get { if (_geoFeatureAtlas == null) { _geoFeatureAtlas = FindObjectOfType<GeoFeatureAtlas>(); } return _geoFeatureAtlas; } set { _geoFeatureAtlas = value; } }
 
-    [SerializeField]
-    Material yourMaterial;
-
-    [SerializeField]
-    MeshFilter _planeMesh;
-
-    [SerializeField]
-    MeshRenderer _planeRenderer;
-
     void Start()
     {
 
@@ -43,10 +34,23 @@ public class MapGenerator : MonoBehaviour
             ContinentGenerator.CreateContinent(this, map, continentBound);
         }
 
-        float planeWorldWidth = 100;
-        float planeWorldHeight = 100;
-        _planeMesh.mesh = CreatePlane(planeWorldWidth, planeWorldHeight, (width/5) - 1, (height/5) - 1);
-        ModifyVertices(map, _planeMesh.mesh);
+        float planeTileWidth = 100;
+        float planeTileHeight = 100;
+
+        float tilesX = width / planeTileWidth;
+        float tilesY = height / planeTileHeight;
+
+        map.MapTiles = new MapTile[(int)tilesX, (int)tilesY];
+
+        for (int x = 0; x < tilesX; x++)
+        {
+            for (int y = 0; y < tilesY; y++)
+            {
+                map.MapTiles[x, y] = Instantiate(map.MapTilePrefab, new Vector3(x * planeTileWidth, 0, y * planeTileHeight), Quaternion.identity);
+                map.MapTiles[x, y].PlaneMesh.mesh = CreatePlane(planeTileWidth, planeTileHeight, (int)planeTileWidth - 1, (int)planeTileHeight - 1);
+                ModifyVertices(map, map.MapTiles[x, y].PlaneMesh.mesh, new Vector2Int(x * (int)planeTileWidth, y * (int)planeTileHeight), new Vector2Int((x + 1) * (int)planeTileWidth, (y + 1) * (int)planeTileHeight), 1);
+            }
+        }
 
         map.AddMapMode(MapModes.Normal);
         map.AddMapMode(MapModes.Temperature);
@@ -112,24 +116,19 @@ public class MapGenerator : MonoBehaviour
         return mesh;
     }
 
-    void ModifyVertices(Map map, Mesh mesh)
+    void ModifyVertices(Map map, Mesh mesh, Vector2Int startPoint, Vector2Int endPoint, int resolution)
     {
-        float heightScale = 1f;
+        float heightScale = 10f;
 
         Vector3[] vertices = mesh.vertices;
 
-        int resolution = 5;
-
-        int width = map.GetLength(0) / resolution;
-        int height = map.GetLength(1) / resolution;
-
-        for (int z = 0; z < height; z++)
+        for (int z = 0; z < endPoint.y - startPoint.y; z++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 0; x < endPoint.x - startPoint.x; x++)
             {
-                int index = z * width + x; // Calculate the vertex index
+                int index = z * (endPoint.x - startPoint.x) + x; // Calculate the vertex index
                 Vector3 vertex = vertices[index];
-                vertex.y = map.GetHeight(x * resolution, z * resolution) * heightScale;
+                vertex.y = map.GetHeight((x + startPoint.x) * resolution, (z + startPoint.y) * resolution) * heightScale;
                 vertices[index] = vertex; // Assign the updated vertex
             }
         }
