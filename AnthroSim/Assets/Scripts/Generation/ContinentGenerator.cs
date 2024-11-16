@@ -49,7 +49,7 @@ public static class ContinentGenerator
 
         for (int m = 0; m < 10; m++)
         {
-            MountainGenerator.AddMountainRange(mapGenerator, map, bounds);
+            //MountainGenerator.AddMountainRange(mapGenerator, map, bounds);
         }
     }
 

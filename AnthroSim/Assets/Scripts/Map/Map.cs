@@ -7,6 +7,8 @@ public class Map : MonoBehaviour
 {
     private MapData _mapData;
 
+    private MeshRenderer _planeRenderer;
+
     public Dictionary<MapModes, Texture2D> Textures;
 
     [SerializeField]
@@ -14,11 +16,16 @@ public class Map : MonoBehaviour
 
     MapModes _currentMapMode;
 
+    [SerializeField]
+    public MapTile MapTilePrefab;
+
     public MapTile[,] MapTiles;
 
     // Start is called before the first frame update
     void Start()
     {
+        _planeRenderer = GetComponent<MeshRenderer>();
+
         _currentMapMode = MapModes.Normal;
         Textures = new Dictionary<MapModes, Texture2D>();
     }
@@ -40,7 +47,7 @@ public class Map : MonoBehaviour
 
     public void SetMapMode(MapModes mode)
     {
-
+        _planeRenderer.material.mainTexture = Textures[mode];
     }
 
     public void AddMapMode(MapModes mode)

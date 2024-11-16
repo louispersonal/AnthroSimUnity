@@ -5,7 +5,17 @@ using UnityEngine;
 public class MapTile : MonoBehaviour
 {
     [SerializeField]
-    MeshFilter _planeMesh;
+    public MeshFilter PlaneMesh;
 
-    public MeshFilter PlaneMesh { get { return _planeMesh; } set { _planeMesh = value; } }
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
 }

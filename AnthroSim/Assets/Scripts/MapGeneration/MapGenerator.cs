@@ -18,24 +18,14 @@ public class MapGenerator : MonoBehaviour
     GeoFeatureAtlas _geoFeatureAtlas;
     public GeoFeatureAtlas GeoFeatureAtlas { get { if (_geoFeatureAtlas == null) { _geoFeatureAtlas = FindObjectOfType<GeoFeatureAtlas>(); } return _geoFeatureAtlas; } set { _geoFeatureAtlas = value; } }
 
-    [SerializeField]
-    Material yourMaterial;
-
-    [SerializeField]
-    MapTile _mapTilePrefab;
-
-    private const int MAX_VERTICES_WIDTH_PLANE = 256;
-
     void Start()
     {
 
     }
 
-    public void GenerateMap(Map map)
+    public void GenerateMap(Map map, int width, int height)
     {
-        int worldWidth = GenerationParameters.WorldSizeKilometers / GenerationParameters.KilometersPerDataPoint;
-
-        map.InitializeMap(worldWidth, worldWidth);
+        map.InitializeMap(width, height);
 
         List<Rectangle> continentBounds = ContinentGenerator.GetAllContinentBounds(map, GenerationParameters.NumContinents);
 
@@ -44,24 +34,21 @@ public class MapGenerator : MonoBehaviour
             ContinentGenerator.CreateContinent(this, map, continentBound);
         }
 
-        int widthVertices = GenerationParameters.WorldSizeKilometers / GenerationParameters.VertexSizeKilometers;
+        float planeTileWidth = 100;
+        float planeTileHeight = 100;
 
-        int numPlanes = Mathf.CeilToInt((float)widthVertices / (float)MAX_VERTICES_WIDTH_PLANE);
+        float tilesX = width / planeTileWidth;
+        float tilesY = height / planeTileHeight;
 
-        float tileWidth = (float)worldWidth / (float)numPlanes;
+        map.MapTiles = new MapTile[(int)tilesX, (int)tilesY];
 
-        int planeWorldWidth = widthVertices;
-        int planeWorldHeight = widthVertices;
-
-        map.MapTiles = new MapTile[numPlanes, numPlanes];
-
-        for (int x = 0; x < numPlanes; x++)
+        for (int x = 0; x < tilesX; x++)
         {
-            for (int y = 0; y < numPlanes; y++)
+            for (int y = 0; y < tilesY; y++)
             {
-                map.MapTiles[x, y] = Instantiate(_mapTilePrefab);
-                map.MapTiles[x, y].PlaneMesh.mesh = CreatePlane(tileWidth, tileWidth, MAX_VERTICES_WIDTH_PLANE, MAX_VERTICES_WIDTH_PLANE);
-                ModifyVertices(map, map.MapTiles[x, y].PlaneMesh.mesh);
+                map.MapTiles[x, y] = Instantiate(map.MapTilePrefab, new Vector3(x * planeTileWidth, 0, y * planeTileHeight), Quaternion.identity);
+                map.MapTiles[x, y].PlaneMesh.mesh = CreatePlane(planeTileWidth, planeTileHeight, (int)planeTileWidth - 1, (int)planeTileHeight - 1);
+                ModifyVertices(map, map.MapTiles[x, y].PlaneMesh.mesh, new Vector2Int(x * (int)planeTileWidth, y * (int)planeTileHeight), new Vector2Int((x + 1) * (int)planeTileWidth, (y + 1) * (int)planeTileHeight), 1);
             }
         }
 
@@ -129,24 +116,19 @@ public class MapGenerator : MonoBehaviour
         return mesh;
     }
 
-    void ModifyVertices(Map map, Mesh mesh)
+    void ModifyVertices(Map map, Mesh mesh, Vector2Int startPoint, Vector2Int endPoint, int resolution)
     {
-        float heightScale = 1f;
+        float heightScale = 10f;
 
         Vector3[] vertices = mesh.vertices;
 
-        int resolution = 5;
-
-        int width = map.GetLength(0) / resolution;
-        int height = map.GetLength(1) / resolution;
-
-        for (int z = 0; z < height; z++)
+        for (int z = 0; z < endPoint.y - startPoint.y; z++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 0; x < endPoint.x - startPoint.x; x++)
             {
-                int index = z * width + x; // Calculate the vertex index
+                int index = z * (endPoint.x - startPoint.x) + x; // Calculate the vertex index
                 Vector3 vertex = vertices[index];
-                vertex.y = map.GetHeight(x * resolution, z * resolution) * heightScale;
+                vertex.y = map.GetHeight((x + startPoint.x) * resolution, (z + startPoint.y) * resolution) * heightScale;
                 vertices[index] = vertex; // Assign the updated vertex
             }
         }
