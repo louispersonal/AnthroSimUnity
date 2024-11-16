@@ -28,7 +28,7 @@ public class MapInitializer : MonoBehaviour
     {
         if (_generateNewMap)
         {
-            _mapGenerator.GenerateMap(_map);
+            _mapGenerator.GenerateMap(_map, 1000, 1000);
         }
     }
 
