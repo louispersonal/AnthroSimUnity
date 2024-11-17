@@ -18,6 +18,7 @@ public class ParameterManager : MonoBehaviour
         GlobalParameters.MaxContinentEdgeDisplacementAngle = _generationParameters.MaxContinentEdgeDisplacementAngle;
         GlobalParameters.MinimumMountainRadius = _generationParameters.MinimumMountainRadius;
         GlobalParameters.MaximumMountainRadius = _generationParameters.MaximumMountainRadius;
+        GlobalParameters.MountainRangeContinentAreaRatio = _generationParameters.MountainRangeContinentAreaRatio;
         GlobalParameters.MinimumValleyRadius = _generationParameters.MinimumValleyRadius;
         GlobalParameters.MaximumValleyRadius = _generationParameters.MaximumValleyRadius;
         GlobalParameters.MaxMountainsPerRange = _generationParameters.MaxMountainsPerRange;

@@ -13,6 +13,7 @@ public static class GlobalParameters
     public static int MaxContinentEdgeDisplacementAngle;
     public static int MinimumMountainRadius;
     public static int MaximumMountainRadius;
+    public static float MountainRangeContinentAreaRatio;
     public static int MinimumValleyRadius;
     public static int MaximumValleyRadius;
     public static int MaxMountainsPerRange;

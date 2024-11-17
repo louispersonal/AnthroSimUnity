@@ -47,7 +47,8 @@ public static class ContinentGenerator
         FloodFill(map, containingPoint, continentID);
         AddPerlinNoise(map, continentID);
 
-        for (int m = 0; m < 4; m++)
+        int numMountainRanges = (int)(ServiceProvider.LandwaterAtlas.Continents[continentID].area * GlobalParameters.MountainRangeContinentAreaRatio);
+        for (int m = 0; m < numMountainRanges; m++)
         {
             MountainGenerator.AddMountainRange(map, bounds);
         }
@@ -109,33 +110,6 @@ public static class ContinentGenerator
             map.SetLandWaterFeatureID(outlinePoint.x, outlinePoint.y, continentID);
         }
     }
-
-    public static Vector2 RotateVectorRandomly(Vector2 vector)
-    {
-        int random = Random.Range(0, 3);
-        switch (random)
-        {
-            case 0:
-                return vector;
-            case 1:
-                return new Vector2(vector.y * -1, vector.x);
-            case 2:
-                return new Vector2(vector.y, vector.x * -1);
-        }
-        return vector;
-    }
-
-    public static bool CheckStepInBounds(int x, int y, Rectangle bounds, Vector2 step)
-    {
-        x += (int)step.x;
-        y += (int)step.y;
-        if (y < bounds.Y_lo || y > bounds.Y_hi || x < bounds.X_lo || x > bounds.X_hi)
-        {
-            return false;
-        }
-        return true;
-    }
-
     public static void FloodFill(Map map, Vector2 containintPoint, int continentID)
     {
         // Get the dimensions of the grid
@@ -158,6 +132,7 @@ public static class ContinentGenerator
             map.SetHeight(x, y, 0.5f);
             map.SetLandWaterType(x, y, LandWaterType.Continent);
             map.SetLandWaterFeatureID(x, y, continentID);
+            ServiceProvider.LandwaterAtlas.Continents[continentID].area++;
 
             // Check all four directions and push valid points onto the stack
             if (x + 1 < rows && map.GetLandWaterFeatureID(x + 1, y) != continentID) stack.Push((x + 1, y));  // Down

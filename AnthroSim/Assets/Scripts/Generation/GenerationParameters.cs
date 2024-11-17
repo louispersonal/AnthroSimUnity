@@ -12,6 +12,7 @@ public class GenerationParameters : ScriptableObject
     public int MaxContinentEdgeDisplacementAngle;
     public int MinimumMountainRadius;
     public int MaximumMountainRadius;
+    public float MountainRangeContinentAreaRatio;
     public int MinimumValleyRadius;
     public int MaximumValleyRadius;
     public int MaxMountainsPerRange;

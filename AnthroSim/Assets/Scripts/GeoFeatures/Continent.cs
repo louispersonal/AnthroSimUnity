@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class Continent
 {
+    public int area;
+
     public Continent()
     {
-
+        area = 0;
     }
 }
