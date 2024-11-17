@@ -4,33 +4,33 @@ using UnityEngine;
 
 public static class MountainGenerator
 {
-    public static void AddMountainRange(MapGenerator mapGenerator, Map map, Rectangle continentBounds)
+    public static void AddMountainRange(Map map, Rectangle continentBounds)
     {
-        int mountainRadius = Random.Range(mapGenerator.GenerationParameters.MinimumMountainRadius, mapGenerator.GenerationParameters.MaximumMountainRadius);
+        int mountainRadius = Random.Range(GlobalParameters.MinimumMountainRadius, GlobalParameters.MaximumMountainRadius);
         Vector2Int firstMountainPeak = FindMountainPeak(map, continentBounds, mountainRadius);
         int numMountains = 1;
         float peakHeight = 1f;
-        AddMountain(mapGenerator, map, firstMountainPeak, mountainRadius, peakHeight);
+        AddMountain(map, firstMountainPeak, mountainRadius, peakHeight);
         Vector2 rangeDirection = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f));
         rangeDirection = rangeDirection.normalized;
-        while (CheckSpaceForMountain(map, firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2))), mountainRadius) && numMountains < mapGenerator.GenerationParameters.MaxMountainsPerRange)
+        while (CheckSpaceForMountain(map, firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2))), mountainRadius) && numMountains < GlobalParameters.MaxMountainsPerRange)
         {
-            AddMountain(mapGenerator, map, firstMountainPeak, mountainRadius, peakHeight);
+            AddMountain(map, firstMountainPeak, mountainRadius, peakHeight);
             numMountains++;
             firstMountainPeak = firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2)));
         }
     }
 
-    private static void AddMountain(MapGenerator mapGenerator, Map map, Vector2Int peakLocation, int mountainRadius, float peakHeight)
+    private static void AddMountain(Map map, Vector2Int peakLocation, int mountainRadius, float peakHeight)
     {
         map.SetHeight(peakLocation.x, peakLocation.y, peakHeight);
         map.SetGeoFeatureType(peakLocation.x, peakLocation.y, GeoFeatureType.Mountain);
-        int mountainID = mapGenerator.GeoFeatureAtlas.GetAvailableMountainID();
+        int mountainID = ServiceProvider.GeoFeatureAtlas.GetAvailableMountainID();
         map.SetGeoFeatureID(peakLocation.x, peakLocation.y, mountainID);
         FormMountain(map, peakLocation, mountainRadius, mountainID, peakHeight);
-        if (Random.Range(0f, 1f) < mapGenerator.GenerationParameters.ChanceOfRiverSourceOnMountain)
+        if (Random.Range(0f, 1f) < GlobalParameters.ChanceOfRiverSourceOnMountain)
         {
-            RiverGenerator.AddRiver(mapGenerator, map, peakLocation);
+            RiverGenerator.AddRiver(map, peakLocation);
         }
     }
 

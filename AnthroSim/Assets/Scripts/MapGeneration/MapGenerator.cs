@@ -10,8 +10,6 @@ using Color = UnityEngine.Color;
 
 public class MapGenerator : MonoBehaviour
 {
-    public GenerationParameters GenerationParameters;
-
     LandwaterAtlas _landwaterAtlas;
     public LandwaterAtlas LandwaterAtlas { get { if (_landwaterAtlas == null) { _landwaterAtlas = FindObjectOfType<LandwaterAtlas>(); } return _landwaterAtlas; } set { _landwaterAtlas = value; } }
 
@@ -27,11 +25,11 @@ public class MapGenerator : MonoBehaviour
     {
         map.InitializeMap(width, height);
 
-        List<Rectangle> continentBounds = ContinentGenerator.GetAllContinentBounds(map, GenerationParameters.NumContinents);
+        List<Rectangle> continentBounds = ContinentGenerator.GetAllContinentBounds(map, GlobalParameters.NumContinents);
 
         foreach (Rectangle continentBound in continentBounds)
         {
-            ContinentGenerator.CreateContinent(this, map, continentBound);
+            ContinentGenerator.CreateContinent(map, continentBound);
         }
 
         float planeTileWidth = 100;
@@ -48,7 +46,7 @@ public class MapGenerator : MonoBehaviour
             {
                 Vector2Int startPoint = new Vector2Int(x * (int)planeTileWidth, y * (int)planeTileHeight);
                 Vector2Int endPoint = new Vector2Int((x + 1) * (int)planeTileWidth, (y + 1) * (int)planeTileHeight);
-                map.MapTiles[x, y] = Instantiate(map.MapTilePrefab, new Vector3(x * planeTileWidth, 0, y * planeTileHeight), Quaternion.identity);
+                map.MapTiles[x, y] = Instantiate(map.MapTilePrefab, new Vector3(x * planeTileWidth, 0, y * planeTileHeight), Quaternion.identity, map.transform);
                 map.MapTiles[x, y].StartPoint = startPoint;
                 map.MapTiles[x, y].EndPoint = endPoint;
                 map.MapTiles[x, y].PlaneMesh.mesh = CreatePlane(planeTileWidth, planeTileHeight, (int)planeTileWidth - 1, (int)planeTileHeight - 1);

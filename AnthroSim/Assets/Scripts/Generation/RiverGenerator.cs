@@ -4,15 +4,15 @@ using UnityEngine;
 
 public static class RiverGenerator
 {
-    public static void AddRiver(MapGenerator mapGenerator, Map map, Vector2Int sourceLocation)
+    public static void AddRiver(Map map, Vector2Int sourceLocation)
     {
         Vector2Int riverEndLocation = FindClosestCoastline(map, sourceLocation);
-        int riverID = mapGenerator.LandwaterAtlas.GetAvailableRiverID();
+        int riverID = ServiceProvider.LandwaterAtlas.GetAvailableRiverID();
 
-        List<Vector2Int> points = RandomWalkVector.RandomWalk(sourceLocation, riverEndLocation, mapGenerator.GenerationParameters.NumRiverVerticesRatio, mapGenerator.GenerationParameters.MaxRiverDisplacementAngle);
+        List<Vector2Int> points = RandomWalkVector.RandomWalk(sourceLocation, riverEndLocation, GlobalParameters.NumRiverVerticesRatio, GlobalParameters.MaxRiverDisplacementAngle);
 
-        int finalValleyWidth = Random.Range(mapGenerator.GenerationParameters.MinimumValleyRadius, mapGenerator.GenerationParameters.MaximumValleyRadius);
-        int valleyID = mapGenerator.GeoFeatureAtlas.GetAvailableValleyID();
+        int finalValleyWidth = Random.Range(GlobalParameters.MinimumValleyRadius, GlobalParameters.MaximumValleyRadius);
+        int valleyID = ServiceProvider.GeoFeatureAtlas.GetAvailableValleyID();
         float valleyWidth = 0;
         float valleySpread = 0.1f;
 
