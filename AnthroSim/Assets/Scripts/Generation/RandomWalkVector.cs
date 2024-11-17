@@ -72,6 +72,18 @@ public static class RandomWalkVector
         return new Vector2Int(Mathf.RoundToInt(rotated.x), Mathf.RoundToInt(rotated.y));
     }
 
+    public static Vector2 RotateVector2(Vector2 original, float angleInDegrees)
+    {
+        float angleInRadians = angleInDegrees * Mathf.Deg2Rad;
+
+        float cosAngle = Mathf.Cos(angleInRadians);
+        float sinAngle = Mathf.Sin(angleInRadians);
+
+        Vector2 rotated = new Vector2(original.x * cosAngle - original.y * sinAngle, original.x * sinAngle + original.y * cosAngle);
+
+        return rotated;
+    }
+
     private static List<Vector2Int> InterpolatePoints(List<Vector2Int> vertices)
     {
         List<Vector2Int> interpolatedPoints = new List<Vector2Int>();

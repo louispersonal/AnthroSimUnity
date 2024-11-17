@@ -13,11 +13,13 @@ public static class MountainGenerator
         AddMountain(map, firstMountainPeak, mountainRadius, peakHeight);
         Vector2 rangeDirection = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f));
         rangeDirection = rangeDirection.normalized;
-        while (CheckSpaceForMountain(map, firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2))), mountainRadius) && numMountains < GlobalParameters.MaxMountainsPerRange)
+        while (CheckSpaceForMountain(map, firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * mountainRadius)), mountainRadius) && numMountains < GlobalParameters.MaxMountainsPerRange)
         {
             AddMountain(map, firstMountainPeak, mountainRadius, peakHeight);
             numMountains++;
-            firstMountainPeak = firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * (mountainRadius * 2)));
+            firstMountainPeak = firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * mountainRadius));
+            mountainRadius = Random.Range(GlobalParameters.MinimumMountainRadius, GlobalParameters.MaximumMountainRadius);
+            rangeDirection = RandomWalkVector.RotateVector2(rangeDirection, Random.Range(-30f, 30f));
         }
     }
 
