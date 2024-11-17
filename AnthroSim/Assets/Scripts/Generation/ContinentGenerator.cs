@@ -74,7 +74,7 @@ public static class ContinentGenerator
     }
     public static float CalculateHeight(int x, int y, int width, int height)
     {
-        float scale = 20f;
+        float scale = 45f;
         float xCoord = (float)x / width * scale;
         float yCoord = (float)y / height * scale;
 

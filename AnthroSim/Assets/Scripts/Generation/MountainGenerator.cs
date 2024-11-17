@@ -67,6 +67,35 @@ public static class MountainGenerator
         }
     }
 
+    private static void FormMountain2(Map map, Vector2Int peakLocation, int mountainRadius, int mountainID, float peakHeight)
+    {
+        for (int y = peakLocation.y - mountainRadius; y < peakLocation.y + mountainRadius; y++)
+        {
+            for (int x = peakLocation.x - mountainRadius; x < peakLocation.x + mountainRadius; x++)
+            {
+                // Calculate the distance from the center of the peak
+                float dx = ((float)x - (float)peakLocation.x) / (float)mountainRadius;
+                float dy = ((float)y - (float)peakLocation.y) / (float)mountainRadius;
+
+                // Apply the parabolic formula
+                float value = CalculateMountainHeightAtPoint(dx, dy, peakHeight, 0.1f, 0f);
+
+                if (value > map.GetHeight(x, y))
+                {
+                    // Add this peak value to the array
+                    map.SetHeight(x, y, value);
+                    map.SetGeoFeatureType(x, y, GeoFeatureType.Mountain);
+                    map.SetGeoFeatureID(x, y, mountainID);
+                }
+            }
+        }
+    }
+
+    private static float CalculateMountainHeightAtPoint(float dx, float dy, float peakHeight, float deformationScale, float deformationAmount)
+    {
+        return peakHeight - Mathf.Sqrt(Mathf.Pow(dx, 2) - Mathf.Pow(dy, 2)) + (deformationScale * Mathf.Sin(deformationAmount * dx)) + (deformationScale * Mathf.Sin(deformationAmount * dy));
+    }
+
     private static Vector2Int FindMountainPeak(Map map, Rectangle continentBounds, int mountainRadius)
     {
         bool spaceForMountain;
@@ -74,7 +103,7 @@ public static class MountainGenerator
         do
         {
             // pick random point
-            randomPoint = new Vector2Int(Random.Range(continentBounds.X_lo, continentBounds.X_hi), Random.Range(continentBounds.X_lo, continentBounds.X_hi));
+            randomPoint = new Vector2Int(Random.Range(continentBounds.X_lo, continentBounds.X_hi), Random.Range(continentBounds.Y_lo, continentBounds.Y_hi));
             spaceForMountain = CheckSpaceForMountain(map, randomPoint, mountainRadius);
         } while (!spaceForMountain);
         return randomPoint;
