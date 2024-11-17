@@ -46,17 +46,21 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = 0; y < tilesY; y++)
             {
+                Vector2Int startPoint = new Vector2Int(x * (int)planeTileWidth, y * (int)planeTileHeight);
+                Vector2Int endPoint = new Vector2Int((x + 1) * (int)planeTileWidth, (y + 1) * (int)planeTileHeight);
                 map.MapTiles[x, y] = Instantiate(map.MapTilePrefab, new Vector3(x * planeTileWidth, 0, y * planeTileHeight), Quaternion.identity);
+                map.MapTiles[x, y].StartPoint = startPoint;
+                map.MapTiles[x, y].EndPoint = endPoint;
                 map.MapTiles[x, y].PlaneMesh.mesh = CreatePlane(planeTileWidth, planeTileHeight, (int)planeTileWidth - 1, (int)planeTileHeight - 1);
-                ModifyVertices(map, map.MapTiles[x, y].PlaneMesh.mesh, new Vector2Int(x * (int)planeTileWidth, y * (int)planeTileHeight), new Vector2Int((x + 1) * (int)planeTileWidth, (y + 1) * (int)planeTileHeight), 1);
+                ModifyVertices(map, map.MapTiles[x, y].PlaneMesh.mesh, startPoint, endPoint, 1);
             }
         }
 
         map.AddMapMode(MapModes.Normal);
-        map.AddMapMode(MapModes.Temperature);
-        map.AddMapMode(MapModes.Precipitation);
-        map.AddMapMode(MapModes.LowVegetation);
-        map.AddMapMode(MapModes.HighVegetation);
+        //map.AddMapMode(MapModes.Temperature);
+        //map.AddMapMode(MapModes.Precipitation);
+        //map.AddMapMode(MapModes.LowVegetation);
+        //map.AddMapMode(MapModes.HighVegetation);
 
         map.SetMapMode(MapModes.Normal);
     }

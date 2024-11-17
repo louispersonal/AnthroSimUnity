@@ -11,14 +11,20 @@ public static class RiverGenerator
 
         List<Vector2Int> points = RandomWalkVector.RandomWalk(sourceLocation, riverEndLocation, mapGenerator.GenerationParameters.NumRiverVerticesRatio, mapGenerator.GenerationParameters.MaxRiverDisplacementAngle);
 
-        int valleyWidth = Random.Range(mapGenerator.GenerationParameters.MinimumValleyRadius, mapGenerator.GenerationParameters.MaximumValleyRadius);
+        int finalValleyWidth = Random.Range(mapGenerator.GenerationParameters.MinimumValleyRadius, mapGenerator.GenerationParameters.MaximumValleyRadius);
         int valleyID = mapGenerator.GeoFeatureAtlas.GetAvailableValleyID();
+        float valleyWidth = 0;
+        float valleySpread = 0.1f;
 
         foreach (Vector2Int point in points)
         {
             map.SetLandWaterType(point.x, point.y, LandWaterType.River);
             map.SetLandWaterFeatureID(point.x, point.y, riverID);
-            ValleyGenerator.CarveValley(map, point, valleyWidth, valleyID, 0.5f);
+            ValleyGenerator.CarveValley(map, point, (int)valleyWidth, valleyID, 0.5f);
+            if (valleyWidth < finalValleyWidth)
+            {
+                valleyWidth += valleySpread;
+            }
         }
     }
 

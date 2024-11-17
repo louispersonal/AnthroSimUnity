@@ -703,8 +703,8 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 400
-  m_Range: 50
+  m_Intensity: 4000
+  m_Range: 1000
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -761,7 +761,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 10, z: 0}
+  m_LocalPosition: {x: 500, y: 100, z: 500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1421,9 +1421,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   GenerationParameters: {fileID: 11400000, guid: 6462bddfb3794ca4f970d375abedeb59,
     type: 2}
-  yourMaterial: {fileID: 2100000, guid: ca99b28d740bf7e4ba0bd76c42a92851, type: 2}
-  _planeMesh: {fileID: 1100144604}
-  _planeRenderer: {fileID: 1100144603}
 --- !u!1 &2041137828
 GameObject:
   m_ObjectHideFlags: 0

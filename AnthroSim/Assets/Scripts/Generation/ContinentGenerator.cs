@@ -47,9 +47,9 @@ public static class ContinentGenerator
         FloodFill(map, containingPoint, continentID);
         AddPerlinNoise(map, continentID);
 
-        for (int m = 0; m < 10; m++)
+        for (int m = 0; m < 4; m++)
         {
-            //MountainGenerator.AddMountainRange(mapGenerator, map, bounds);
+            MountainGenerator.AddMountainRange(mapGenerator, map, bounds);
         }
     }
 

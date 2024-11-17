@@ -17,44 +17,44 @@ public class MapTextureGenerator : MonoBehaviour
         
     }
 
-    public Texture2D CreateMapTexture(Map map, MapModes mode)
+    public Texture2D CreateMapTexture(Map map, MapModes mode, Vector2Int startPoint, Vector2Int endPoint)
     {
         switch (mode)
         {
             case MapModes.Normal:
-                return CreateNormalTexture(map);
+                return CreateNormalTexture(map, startPoint, endPoint);
             case MapModes.Temperature:
-                return CreateTemperatureTexture(map);
+                return CreateTemperatureTexture(map, startPoint, endPoint);
             case MapModes.Precipitation:
-                return CreatePrecipitationTexture(map);
+                return CreatePrecipitationTexture(map, startPoint, endPoint);
             case MapModes.LowVegetation:
-                return CreateLowVegetationTexture(map);
+                return CreateLowVegetationTexture(map, startPoint, endPoint);
             case MapModes.HighVegetation:
-                return CreateHighVegetationTexture(map);
+                return CreateHighVegetationTexture(map, startPoint, endPoint);
         }
         return null;
     }
 
-    public Texture2D CreateNormalTexture(Map map)
+    public Texture2D CreateNormalTexture(Map map, Vector2Int startPoint, Vector2Int endPoint)
     {
         // Create a new Texture2D
-        Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
+        Texture2D texture = new Texture2D(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
 
         // Loop through the array and set pixels
-        for (int y = 0; y < map.GetLength(1); y++)
+        for (int y = 0; y < endPoint.y - startPoint.y; y++)
         {
-            for (int x = 0; x < map.GetLength(0); x++)
+            for (int x = 0; x < endPoint.x - startPoint.x; x++)
             {
                 Color color;
-                if (map.GetLandWaterType(x, y) == LandWaterType.Ocean || map.GetLandWaterType(x, y) == LandWaterType.River)
+                if (map.GetLandWaterType(x + startPoint.x, y + startPoint.y) == LandWaterType.Ocean || map.GetLandWaterType(x + startPoint.x, y + startPoint.y) == LandWaterType.River)
                 {
                     color = new Color(0, 0.3f, 0.7f);
                 }
                 else
                 {
-                    if (map.GetLowVegetation(x, y) < 0.1f && map.GetHighVegetation(x, y) < 0.1f)
+                    if (map.GetLowVegetation(x + startPoint.x, y + startPoint.y) < 0.1f && map.GetHighVegetation(x + startPoint.x, y + startPoint.y) < 0.1f)
                     {
-                        if (map.GetTemperature(x, y) > 30f)
+                        if (map.GetTemperature(x + startPoint.x, y + startPoint.y) > 30f)
                         {
                             //desert
                             color = new Color(0.7f, 0.5f, 0f);
@@ -67,7 +67,7 @@ public class MapTextureGenerator : MonoBehaviour
                     }
                     else
                     {
-                        if (map.GetLowVegetation(x, y) > map.GetHighVegetation(x, y))
+                        if (map.GetLowVegetation(x + startPoint.x, y + startPoint.y) > map.GetHighVegetation(x + startPoint.x, y + startPoint.y))
                         {
                             // grassland
                             color = new Color(0.36f, 0.6f, 0.33f);
@@ -89,7 +89,7 @@ public class MapTextureGenerator : MonoBehaviour
         return texture;
     }
 
-    public Texture2D CreateTemperatureTexture(Map map)
+    public Texture2D CreateTemperatureTexture(Map map, Vector2Int startPoint, Vector2Int endPoint)
     {
         Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
 
@@ -107,7 +107,7 @@ public class MapTextureGenerator : MonoBehaviour
 
         return texture;
     }
-    public Texture2D CreatePrecipitationTexture(Map map)
+    public Texture2D CreatePrecipitationTexture(Map map, Vector2Int startPoint, Vector2Int endPoint)
     {
         Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
 
@@ -124,7 +124,7 @@ public class MapTextureGenerator : MonoBehaviour
 
         return texture;
     }
-    public Texture2D CreateLowVegetationTexture(Map map)
+    public Texture2D CreateLowVegetationTexture(Map map, Vector2Int startPoint, Vector2Int endPoint)
     {
         Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
 
@@ -141,7 +141,7 @@ public class MapTextureGenerator : MonoBehaviour
 
         return texture;
     }
-    public Texture2D CreateHighVegetationTexture(Map map)
+    public Texture2D CreateHighVegetationTexture(Map map, Vector2Int startPoint, Vector2Int endPoint)
     {
         Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
 

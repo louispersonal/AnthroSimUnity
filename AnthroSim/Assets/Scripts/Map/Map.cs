@@ -47,14 +47,17 @@ public class Map : MonoBehaviour
 
     public void SetMapMode(MapModes mode)
     {
-        _planeRenderer.material.mainTexture = Textures[mode];
+        foreach (MapTile mapTile in MapTiles)
+        {
+            mapTile.SetMapMode(mode);
+        }
     }
 
     public void AddMapMode(MapModes mode)
     {
-        if (!Textures.ContainsKey(mode))
+        foreach (MapTile mapTile in MapTiles)
         {
-            Textures.Add(mode, _mapTextureGenerator.CreateMapTexture(this, mode));
+            mapTile.AddMapMode(this, mode, _mapTextureGenerator);
         }
     }
 

@@ -54,10 +54,13 @@ public static class MountainGenerator
                 // Clamp the value between minHeight and maxHeight
                 value = Mathf.Max(map.GetHeight(x, y), Mathf.Min(peakHeight, value));
 
-                // Add this peak value to the array
-                map.SetHeight(x, y, value);
-                map.SetGeoFeatureType(x, y, GeoFeatureType.Mountain);
-                map.SetGeoFeatureID(x, y, mountainID);
+                if (value != map.GetHeight(x, y))
+                {
+                    // Add this peak value to the array
+                    map.SetHeight(x, y, value);
+                    map.SetGeoFeatureType(x, y, GeoFeatureType.Mountain);
+                    map.SetGeoFeatureID(x, y, mountainID);
+                }
             }
         }
     }
