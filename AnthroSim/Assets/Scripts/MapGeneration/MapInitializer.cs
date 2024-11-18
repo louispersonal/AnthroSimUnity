@@ -23,18 +23,21 @@ public class MapInitializer : MonoBehaviour
     [Tooltip("Refers to the number of pixels per world unit")]
     float _mapResolution;
 
+    private bool _initiated = false;
+
     // Start is called before the first frame update
     void Start()
     {
-        if (_generateNewMap)
-        {
-            _mapGenerator.GenerateMap(_map, 1000, 1000);
-        }
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (_generateNewMap && !_initiated)
+        {
+            _mapGenerator.GenerateMap(_map, 1000, 1000);
+            _initiated = true;
+        }
     }
 }
