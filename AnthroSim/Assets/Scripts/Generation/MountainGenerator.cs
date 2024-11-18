@@ -29,7 +29,7 @@ public static class MountainGenerator
         map.SetGeoFeatureType(peakLocation.x, peakLocation.y, GeoFeatureType.Mountain);
         int mountainID = ServiceProvider.GeoFeatureAtlas.GetAvailableMountainID();
         map.SetGeoFeatureID(peakLocation.x, peakLocation.y, mountainID);
-        FormMountain(map, peakLocation, mountainRadius, mountainID, peakHeight);
+        FormMountain2(map, peakLocation, mountainRadius, mountainID, peakHeight);
         if (Random.Range(0f, 1f) < GlobalParameters.ChanceOfRiverSourceOnMountain)
         {
             RiverGenerator.AddRiver(map, peakLocation);
@@ -74,11 +74,11 @@ public static class MountainGenerator
             for (int x = peakLocation.x - mountainRadius; x < peakLocation.x + mountainRadius; x++)
             {
                 // Calculate the distance from the center of the peak
-                float dx = ((float)x - (float)peakLocation.x) / (float)mountainRadius;
-                float dy = ((float)y - (float)peakLocation.y) / (float)mountainRadius;
+                float dx = ((float)x - (float)peakLocation.x) / (2 * (float)mountainRadius);
+                float dy = ((float)y - (float)peakLocation.y) / (2 * (float)mountainRadius);
 
                 // Apply the parabolic formula
-                float value = CalculateMountainHeightAtPoint(dx, dy, peakHeight, 0.1f, 0f);
+                float value = CalculateMountainHeightAtPoint(dx, dy, peakHeight, 0.15f, 5f);
 
                 if (value > map.GetHeight(x, y))
                 {
@@ -93,7 +93,7 @@ public static class MountainGenerator
 
     private static float CalculateMountainHeightAtPoint(float dx, float dy, float peakHeight, float deformationScale, float deformationAmount)
     {
-        return peakHeight - Mathf.Sqrt(Mathf.Pow(dx, 2) - Mathf.Pow(dy, 2)) + (deformationScale * Mathf.Sin(deformationAmount * dx)) + (deformationScale * Mathf.Sin(deformationAmount * dy));
+        return peakHeight - Mathf.Sqrt(Mathf.Pow(dx, 2) + Mathf.Pow(dy, 2)) + (deformationScale * Mathf.Sin(deformationAmount * dx)) + (deformationScale * Mathf.Sin(deformationAmount * dy));
     }
 
     private static Vector2Int FindMountainPeak(Map map, Rectangle continentBounds, int mountainRadius)

@@ -135,6 +135,11 @@ public static class ContinentGenerator
         }
     }
 
+    public static void RemoveLoops(List<Vector2Int> outline)
+    {
+
+    }
+
     public static bool CheckForDuplicatePoints(List<Vector2Int> outline, bool excludeFinalPoint)
     {
         int offset = 0;
