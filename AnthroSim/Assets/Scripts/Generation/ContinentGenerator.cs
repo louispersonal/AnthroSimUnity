@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public static class ContinentGenerator
 {
@@ -103,6 +106,8 @@ public static class ContinentGenerator
         outline.AddRange(RandomWalkVector.RandomWalk(corners[2], corners[3], GlobalParameters.NumContinentEdgeVerticesRatio, GlobalParameters.MaxContinentEdgeDisplacementAngle));
         outline.AddRange(RandomWalkVector.RandomWalk(corners[3], corners[0], GlobalParameters.NumContinentEdgeVerticesRatio, GlobalParameters.MaxContinentEdgeDisplacementAngle));
 
+        RemoveConsecutiveDuplicatePoints(outline);
+
         foreach (Vector2Int outlinePoint in outline)
         {
             map.SetHeight(outlinePoint.x, outlinePoint.y, 0.5f);
@@ -110,6 +115,37 @@ public static class ContinentGenerator
             map.SetLandWaterFeatureID(outlinePoint.x, outlinePoint.y, continentID);
         }
     }
+
+    public static void RemoveConsecutiveDuplicatePoints(List<Vector2Int> outline)
+    {
+        int count = outline.Count - 1;
+        List<int> duplicateIndeces = new List<int>();
+        for(int i = 0; i < count; i++)
+        {
+            Vector2Int thisPoint = outline[i];
+            Vector2Int nextPoint = outline[i + 1];
+            if (nextPoint == thisPoint)
+            {
+                duplicateIndeces.Add(i + 1);
+            }
+        }
+        for(int d = duplicateIndeces.Count - 1; d >=0; d--)
+        {
+            outline.RemoveAt(duplicateIndeces[d]);
+        }
+    }
+
+    public static bool CheckForDuplicatePoints(List<Vector2Int> outline, bool excludeFinalPoint)
+    {
+        int offset = 0;
+        if (excludeFinalPoint)
+        {
+            offset = 1;
+        }
+        var distinct = outline.Distinct().ToList();
+        return distinct.Count() != outline.Count() - offset;
+    }
+
     public static void FloodFill(Map map, Vector2 containintPoint, int continentID)
     {
         // Get the dimensions of the grid
