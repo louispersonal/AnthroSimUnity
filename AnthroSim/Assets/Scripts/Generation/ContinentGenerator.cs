@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
 
 public static class ContinentGenerator
@@ -45,8 +46,8 @@ public static class ContinentGenerator
     public static void CreateContinent(Map map, Rectangle bounds)
     {
         int continentID = ServiceProvider.LandwaterAtlas.GetAvailableContinentID();
-        GenerateOutline(map, bounds, continentID);
-        Vector2 containingPoint = FindContainingPoint(bounds);
+        List<Vector2Int> outline = GenerateOutline(map, bounds, continentID);
+        Vector2 containingPoint = FindContainingPoint(outline);
         FloodFill(map, containingPoint, continentID);
         AddPerlinNoise(map, continentID);
 
@@ -88,12 +89,62 @@ public static class ContinentGenerator
         return 0.8f * Mathf.PerlinNoise(xCoord_1, yCoord_1) + 0.2f * (Mathf.PerlinNoise(xCoord_1, yCoord_1) * Mathf.PerlinNoise(xCoord_2, yCoord_2));
     }
 
-    public static Vector2 FindContainingPoint(Rectangle bounds)
+    public static Vector2 FindContainingPoint(List<Vector2Int> outline)
     {
-        return new Vector2(((bounds.X_hi - bounds.X_lo) / 2) + bounds.X_lo, ((bounds.Y_hi - bounds.Y_lo) / 2) + bounds.Y_lo);
+        // Calculate the centroid of the polygon as a starting point.
+        float centroidX = 0;
+        float centroidY = 0;
+
+        foreach (var point in outline)
+        {
+            centroidX += point.x;
+            centroidY += point.y;
+        }
+
+        centroidX /= outline.Count;
+        centroidY /= outline.Count;
+
+        Vector2 centroid = new Vector2(centroidX, centroidY);
+
+        // Verify if the centroid is inside the polygon
+        if (IsPointInPolygon(outline, centroid))
+        {
+            return centroid;
+        }
+
+        // If not, move slightly towards the first vertex
+        var firstVertex = outline[0];
+        Vector2 adjustedPoint = Vector2.Lerp(centroid, firstVertex, 0.1f);
+
+        if (IsPointInPolygon(outline, adjustedPoint))
+        {
+            return adjustedPoint;
+        }
+
+        // As a fallback, return the first vertex itself
+        return firstVertex;
     }
 
-    public static void GenerateOutline(Map map, Rectangle bounds, int continentID)
+    private static bool IsPointInPolygon(List<Vector2Int> polygon, Vector2 point)
+    {
+        bool isInside = false;
+        int j = polygon.Count - 1;
+
+        for (int i = 0; i < polygon.Count; i++)
+        {
+            if ((polygon[i].y > point.y) != (polygon[j].y > point.y) &&
+                point.x < (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x)
+            {
+                isInside = !isInside;
+            }
+
+            j = i;
+        }
+
+        return isInside;
+    }
+
+    public static List<Vector2Int> GenerateOutline(Map map, Rectangle bounds, int continentID)
     {
         int x_mid = ((bounds.X_hi - bounds.X_lo) / 2) + bounds.X_lo;
         int y_mid = ((bounds.Y_hi - bounds.Y_lo) / 2) + bounds.Y_lo;
@@ -111,6 +162,7 @@ public static class ContinentGenerator
         outline.AddRange(RandomWalkVector.RandomWalk(corners[3], corners[0], GlobalParameters.NumContinentEdgeVerticesRatio, GlobalParameters.MaxContinentEdgeDisplacementAngle));
 
         RemoveConsecutiveDuplicatePoints(outline);
+        RemoveLoops(outline);
 
         foreach (Vector2Int outlinePoint in outline)
         {
@@ -118,6 +170,8 @@ public static class ContinentGenerator
             map.SetLandWaterType(outlinePoint.x, outlinePoint.y, LandWaterType.Continent);
             map.SetLandWaterFeatureID(outlinePoint.x, outlinePoint.y, continentID);
         }
+
+        return outline;
     }
 
     public static void RemoveConsecutiveDuplicatePoints(List<Vector2Int> outline)
@@ -141,7 +195,18 @@ public static class ContinentGenerator
 
     public static void RemoveLoops(List<Vector2Int> outline)
     {
-
+        int count = outline.Count - 1;
+        for (int i = 0; i < count; i++)
+        {
+            for (int j = i + 1; j < count; j++)
+            {
+                if (outline[i] == outline[j])
+                {
+                    outline.RemoveRange(i, j - i);
+                    count -= j - i;
+                }
+            }
+        }
     }
 
     public static bool CheckForDuplicatePoints(List<Vector2Int> outline, bool excludeFinalPoint)
@@ -155,14 +220,14 @@ public static class ContinentGenerator
         return distinct.Count() != outline.Count() - offset;
     }
 
-    public static void FloodFill(Map map, Vector2 containintPoint, int continentID)
+    public static void FloodFill(Map map, Vector2 containingPoint, int continentID)
     {
         // Get the dimensions of the grid
         int rows = map.GetLength(0);
         int cols = map.GetLength(1);
 
-        int startX = (int)containintPoint.x;
-        int startY = (int)containintPoint.y;
+        int startX = (int)containingPoint.x;
+        int startY = (int)containingPoint.y;
 
         // Use a stack to simulate the recursion
         Stack<(int x, int y)> stack = new Stack<(int x, int y)>();
