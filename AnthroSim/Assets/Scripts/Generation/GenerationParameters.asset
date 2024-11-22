@@ -21,7 +21,7 @@ MonoBehaviour:
   MaxContinentEdgeDisplacementAngle: 20
   MinimumMountainRadius: 10
   MaximumMountainRadius: 15
-  MountainRangeContinentAreaRatio: 0.0001
+  MountainRangeContinentAreaRatio: 0.00005
   MinimumValleyRadius: 10
   MaximumValleyRadius: 40
   MaxMountainsPerRange: 10
