@@ -23,8 +23,9 @@ MonoBehaviour:
   MaximumMountainRadius: 15
   MountainRangeContinentAreaRatio: 0.0001
   MinimumValleyRadius: 10
-  MaximumValleyRadius: 15
+  MaximumValleyRadius: 40
   MaxMountainsPerRange: 10
   ChanceOfRiverSourceOnMountain: 0.2
   NumRiverVerticesRatio: 0.8
   MaxRiverDisplacementAngle: 30
+  SeaLevel: 0.1

@@ -13,14 +13,14 @@ public static class RiverGenerator
 
         int finalValleyWidth = Random.Range(GlobalParameters.MinimumValleyRadius, GlobalParameters.MaximumValleyRadius);
         int valleyID = ServiceProvider.GeoFeatureAtlas.GetAvailableValleyID();
-        float valleyWidth = 0;
-        float valleySpread = 0.1f;
+        float valleyWidth = 1;
+        float valleySpread = 0.5f;
 
         foreach (Vector2Int point in points)
         {
             map.SetLandWaterType(point.x, point.y, LandWaterType.River);
             map.SetLandWaterFeatureID(point.x, point.y, riverID);
-            ValleyGenerator.CarveValley(map, point, (int)valleyWidth, valleyID, 0.5f);
+            ValleyGenerator.CarveValley(map, point, (int)valleyWidth, valleyID, GlobalParameters.SeaLevel);
             if (valleyWidth < finalValleyWidth)
             {
                 valleyWidth += valleySpread;

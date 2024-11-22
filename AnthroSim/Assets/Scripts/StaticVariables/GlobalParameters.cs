@@ -20,4 +20,5 @@ public static class GlobalParameters
     public static float ChanceOfRiverSourceOnMountain;
     public static float NumRiverVerticesRatio;
     public static float MaxRiverDisplacementAngle;
+    public static float SeaLevel;
 }

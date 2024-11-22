@@ -110,7 +110,7 @@ public static class ContinentGenerator
 
         foreach (Vector2Int outlinePoint in outline)
         {
-            map.SetHeight(outlinePoint.x, outlinePoint.y, 0.5f);
+            map.SetHeight(outlinePoint.x, outlinePoint.y, GlobalParameters.SeaLevel);
             map.SetLandWaterType(outlinePoint.x, outlinePoint.y, LandWaterType.Continent);
             map.SetLandWaterFeatureID(outlinePoint.x, outlinePoint.y, continentID);
         }
@@ -169,8 +169,8 @@ public static class ContinentGenerator
             // Pop a point from the stack
             var (x, y) = stack.Pop();
 
-            // Fill the point with 0.5
-            map.SetHeight(x, y, 0.5f);
+            // Fill the point with GlobalParameters.SeaLevel
+            map.SetHeight(x, y, GlobalParameters.SeaLevel);
             map.SetLandWaterType(x, y, LandWaterType.Continent);
             map.SetLandWaterFeatureID(x, y, continentID);
             ServiceProvider.LandwaterAtlas.Continents[continentID].area++;

@@ -74,8 +74,8 @@ public static class MountainGenerator
             for (int x = peakLocation.x - mountainRadius; x < peakLocation.x + mountainRadius; x++)
             {
                 // Calculate the distance from the center of the peak
-                float dx = ((float)x - (float)peakLocation.x) / (2 * (float)mountainRadius);
-                float dy = ((float)y - (float)peakLocation.y) / (2 * (float)mountainRadius);
+                float dx = ((float)x - (float)peakLocation.x) / (float)mountainRadius;
+                float dy = ((float)y - (float)peakLocation.y) / (float)mountainRadius;
 
                 // Apply the parabolic formula
                 float value = CalculateMountainHeightAtPoint(dx, dy, peakHeight, 0.1f);

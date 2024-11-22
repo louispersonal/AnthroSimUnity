@@ -19,4 +19,5 @@ public class GenerationParameters : ScriptableObject
     public float ChanceOfRiverSourceOnMountain;
     public float NumRiverVerticesRatio;
     public float MaxRiverDisplacementAngle;
+    public float SeaLevel;
 }

@@ -25,6 +25,7 @@ public class ParameterManager : MonoBehaviour
         GlobalParameters.ChanceOfRiverSourceOnMountain = _generationParameters.ChanceOfRiverSourceOnMountain;
         GlobalParameters.NumRiverVerticesRatio = _generationParameters.NumRiverVerticesRatio;
         GlobalParameters.MaxRiverDisplacementAngle = _generationParameters.MaxRiverDisplacementAngle;
+        GlobalParameters.SeaLevel = _generationParameters.SeaLevel;
 }
 
     // Update is called once per frame
