@@ -78,7 +78,7 @@ public static class MountainGenerator
                 float dy = ((float)y - (float)peakLocation.y) / (2 * (float)mountainRadius);
 
                 // Apply the parabolic formula
-                float value = CalculateMountainHeightAtPoint(dx, dy, peakHeight, 0.15f, 5f);
+                float value = CalculateMountainHeightAtPoint(dx, dy, peakHeight, 0.1f);
 
                 if (value > map.GetHeight(x, y))
                 {
@@ -91,9 +91,16 @@ public static class MountainGenerator
         }
     }
 
-    private static float CalculateMountainHeightAtPoint(float dx, float dy, float peakHeight, float deformationScale, float deformationAmount)
+    private static float CalculateMountainHeightAtPoint(float dx, float dy, float peakHeight, float noiseScale)
     {
-        return peakHeight - Mathf.Sqrt(Mathf.Pow(dx, 2) + Mathf.Pow(dy, 2)) + (deformationScale * Mathf.Sin(deformationAmount * dx)) + (deformationScale * Mathf.Sin(deformationAmount * dy));
+        return peakHeight - ( 1 - noiseScale ) * Mathf.Sqrt(Mathf.Pow(dx, 2) + Mathf.Pow(dy, 2)) + noiseScale * CalculateNoiseAtPoint(dx, dy);
+    }
+
+    private static float CalculateNoiseAtPoint(float dx, float dy)
+    {
+        float scale = 4f;
+
+        return Mathf.PerlinNoise(dx * scale, dy * scale);
     }
 
     private static Vector2Int FindMountainPeak(Map map, Rectangle continentBounds, int mountainRadius)

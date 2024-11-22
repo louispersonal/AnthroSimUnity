@@ -7,7 +7,7 @@ public static class ValleyGenerator
     public static void CarveValley(Map map, Vector2Int bottomLocation, int valleyRadius, int valleyID, float valleyDepth)
     {
         // Coefficients for controlling the spread of the parabola
-        float a = 1f, b = 1f;
+        float a = 3f, b = 3f;
         // Iterate over every element in the 2D array
         for (int y = bottomLocation.y - valleyRadius; y < bottomLocation.y + valleyRadius; y++)
         {
