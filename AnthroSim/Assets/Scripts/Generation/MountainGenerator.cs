@@ -13,7 +13,7 @@ public static class MountainGenerator
         AddMountain(map, firstMountainPeak, mountainRadius, peakHeight);
         Vector2 rangeDirection = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f));
         rangeDirection = rangeDirection.normalized;
-        while (CheckSpaceForMountain(map, firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * 2 * mountainRadius))) && numMountains < GlobalParameters.MaxMountainsPerRange)
+        while (CheckSpaceForMountain(map, firstMountainPeak + Vector2Int.CeilToInt((rangeDirection * 2 * mountainRadius)), mountainRadius) && numMountains < GlobalParameters.MaxMountainsPerRange)
         {
             AddMountain(map, firstMountainPeak, mountainRadius, peakHeight);
             numMountains++;
@@ -111,23 +111,27 @@ public static class MountainGenerator
         {
             // pick random point
             randomPoint = new Vector2Int(Random.Range(continentBounds.X_lo, continentBounds.X_hi), Random.Range(continentBounds.Y_lo, continentBounds.Y_hi));
-            spaceForMountain = CheckSpaceForMountain(map, randomPoint);
+            spaceForMountain = CheckSpaceForMountain(map, randomPoint, mountainRadius);
         } while (!spaceForMountain);
         return randomPoint;
     }
 
-    private static bool CheckSpaceForMountain(Map map, Vector2Int peakLocation)
+    private static bool CheckSpaceForMountain(Map map, Vector2Int peakLocation, int mountainRadius)
     {
-        bool roomOnLand = map.GetLandWaterType(peakLocation.x, peakLocation.y) == LandWaterType.Continent
-            && map.GetLandWaterType(peakLocation.x, peakLocation.y) == LandWaterType.Continent
-            && map.GetLandWaterType(peakLocation.x, peakLocation.y) == LandWaterType.Continent
-            && map.GetLandWaterType(peakLocation.x, peakLocation.y) == LandWaterType.Continent;
-
-        bool noConflictingFeature = map.GetGeoFeatureType(peakLocation.x, peakLocation.y) == GeoFeatureType.None
-            && map.GetGeoFeatureType(peakLocation.x, peakLocation.y) == GeoFeatureType.None
-            && map.GetGeoFeatureType(peakLocation.x, peakLocation.y) == GeoFeatureType.None
-            && map.GetGeoFeatureType(peakLocation.x, peakLocation.y) == GeoFeatureType.None;
-
-        return roomOnLand && noConflictingFeature;
+        for (int x = peakLocation.x - mountainRadius; x < peakLocation.x + mountainRadius; x++)
+        {
+            for (int y = peakLocation.y - mountainRadius; y < peakLocation.y + mountainRadius; y++)
+            {
+                if (map.GetLandWaterType(x, y) != LandWaterType.Continent)
+                {
+                    return false;
+                }
+                if (map.GetGeoFeatureType(x, y) != GeoFeatureType.None && map.GetGeoFeatureType(x, y) != GeoFeatureType.Mountain)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }

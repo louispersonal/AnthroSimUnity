@@ -77,11 +77,15 @@ public static class ContinentGenerator
     }
     public static float CalculateHeight(int x, int y, int width, int height)
     {
-        float scale = 45f;
-        float xCoord = (float)x / width * scale;
-        float yCoord = (float)y / height * scale;
+        float scale_1 = 10f;
+        float xCoord_1 = (float)x / width * scale_1;
+        float yCoord_1 = (float)y / height * scale_1;
 
-        return Mathf.PerlinNoise(xCoord, yCoord);
+        float scale_2 = 50f;
+        float xCoord_2 = (float)x / width * scale_2;
+        float yCoord_2 = (float)y / height * scale_2;
+
+        return Mathf.PerlinNoise(xCoord_1, yCoord_1) * Mathf.PerlinNoise(xCoord_2, yCoord_2);
     }
 
     public static Vector2 FindContainingPoint(Rectangle bounds)
