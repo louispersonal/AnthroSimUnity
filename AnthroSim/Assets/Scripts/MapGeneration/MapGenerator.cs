@@ -30,7 +30,19 @@ public class MapGenerator : MonoBehaviour
         foreach (Rectangle continentBound in continentBounds)
         {
             ContinentGenerator.CreateContinent(map, continentBound);
+            for (int x = continentBound.X_lo; x < continentBound.X_hi; x++)
+            {
+                for (int y = continentBound.Y_lo; y < continentBound.Y_hi; y++)
+                {
+                    map.SetWaterProximity(x, y, ComputeWaterProximity(map, x, y));
+                    map.SetTemperature(x, y, ComputeTemperature(map, x, y));
+                    map.SetLowVegetation(x, y, ComputeLowVegetation(map, x, y));
+                    map.SetHighVegetation(x, y, ComputeHighVegetation(map, x, y));
+                }
+            }
         }
+
+        CloudGenerator.CloudPass(map);
 
         float planeTileWidth = 100;
         float planeTileHeight = 100;
