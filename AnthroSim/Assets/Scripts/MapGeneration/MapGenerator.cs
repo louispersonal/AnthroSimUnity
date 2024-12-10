@@ -67,10 +67,10 @@ public class MapGenerator : MonoBehaviour
         }
 
         map.AddMapMode(MapModes.Normal);
-        //map.AddMapMode(MapModes.Temperature);
-        //map.AddMapMode(MapModes.Precipitation);
-        //map.AddMapMode(MapModes.LowVegetation);
-        //map.AddMapMode(MapModes.HighVegetation);
+        map.AddMapMode(MapModes.Temperature);
+        map.AddMapMode(MapModes.Precipitation);
+        map.AddMapMode(MapModes.LowVegetation);
+        map.AddMapMode(MapModes.HighVegetation);
 
         map.SetMapMode(MapModes.Normal);
     }

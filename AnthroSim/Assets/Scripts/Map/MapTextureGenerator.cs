@@ -91,13 +91,13 @@ public class MapTextureGenerator : MonoBehaviour
 
     public Texture2D CreateTemperatureTexture(Map map, Vector2Int startPoint, Vector2Int endPoint)
     {
-        Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
+        Texture2D texture = new Texture2D(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
 
-        for (int y = 0; y < map.GetLength(1); y++)
+        for (int y = 0; y < endPoint.y - startPoint.y; y++)
         {
-            for (int x = 0; x < map.GetLength(0); x++)
+            for (int x = 0; x < endPoint.x - startPoint.x; x++)
             {
-                float value = (map.GetTemperature(x, y) + 20) / 60;
+                float value = (map.GetTemperature(x + startPoint.x, y + startPoint.y) + 20) / 60;
                 Color color = new (value, 0, 0);
                 texture.SetPixel(x, y, color);
             }
@@ -109,13 +109,13 @@ public class MapTextureGenerator : MonoBehaviour
     }
     public Texture2D CreatePrecipitationTexture(Map map, Vector2Int startPoint, Vector2Int endPoint)
     {
-        Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
+        Texture2D texture = new Texture2D(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
 
-        for (int y = 0; y < map.GetLength(1); y++)
+        for (int y = 0; y < endPoint.y - startPoint.y; y++)
         {
-            for (int x = 0; x < map.GetLength(0); x++)
+            for (int x = 0; x < endPoint.x - startPoint.x; x++)
             {
-                Color color = new (0, 0, map.GetPrecipitation(x, y));
+                Color color = new (0, 0, map.GetPrecipitation(x + startPoint.x, y + startPoint.y));
                 texture.SetPixel(x, y, color);
             }
         }
@@ -126,13 +126,13 @@ public class MapTextureGenerator : MonoBehaviour
     }
     public Texture2D CreateLowVegetationTexture(Map map, Vector2Int startPoint, Vector2Int endPoint)
     {
-        Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
+        Texture2D texture = new Texture2D(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
 
-        for (int y = 0; y < map.GetLength(1); y++)
+        for (int y = 0; y < endPoint.y - startPoint.y; y++)
         {
-            for (int x = 0; x < map.GetLength(0); x++)
+            for (int x = 0; x < endPoint.x - startPoint.x; x++)
             {
-                Color color = new (0, map.GetLowVegetation(x, y), 0);
+                Color color = new (0, map.GetLowVegetation(x + startPoint.x, y + startPoint.y), 0);
                 texture.SetPixel(x, y, color);
             }
         }
@@ -143,13 +143,13 @@ public class MapTextureGenerator : MonoBehaviour
     }
     public Texture2D CreateHighVegetationTexture(Map map, Vector2Int startPoint, Vector2Int endPoint)
     {
-        Texture2D texture = new Texture2D(map.GetLength(0), map.GetLength(1));
+        Texture2D texture = new Texture2D(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
 
-        for (int y = 0; y < map.GetLength(1); y++)
+        for (int y = 0; y < endPoint.y - startPoint.y; y++)
         {
-            for (int x = 0; x < map.GetLength(0); x++)
+            for (int x = 0; x < endPoint.x - startPoint.x; x++)
             {
-                Color color = new (0, map.GetHighVegetation(x, y), 0);
+                Color color = new (0, map.GetHighVegetation(x + startPoint.x, y + startPoint.y), 0);
                 texture.SetPixel(x, y, color);
             }
         }
