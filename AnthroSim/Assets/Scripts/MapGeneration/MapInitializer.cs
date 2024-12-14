@@ -14,14 +14,12 @@ public class MapInitializer : MonoBehaviour
     Map _map;
 
     [SerializeField]
+    [Tooltip("Width of map in data points")]
     int _mapWidth;
 
     [SerializeField]
+    [Tooltip("Height of map in data points")]
     int _mapHeight;
-
-    [SerializeField]
-    [Tooltip("Refers to the number of pixels per world unit")]
-    float _mapResolution;
 
     private bool _initiated = false;
 
@@ -36,7 +34,7 @@ public class MapInitializer : MonoBehaviour
     {
         if (_generateNewMap && !_initiated)
         {
-            _mapGenerator.GenerateMap(_map, 1000, 1000);
+            _mapGenerator.GenerateMap(_map, _mapWidth, _mapHeight);
             _initiated = true;
         }
     }

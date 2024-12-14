@@ -44,11 +44,17 @@ public class MapGenerator : MonoBehaviour
 
         CloudGenerator.CloudPass(map);
 
-        float planeTileWidth = 100;
-        float planeTileHeight = 100;
+        float planeTileDataWidth = 100;
+        float planeTileDataHeight = 100;
 
-        float tilesX = width / planeTileWidth;
-        float tilesY = height / planeTileHeight;
+        float dataPointsPerWorldUnit = 10;
+        float dataPointsPerVertex = 0.5f;
+
+        float planeTileWorldWidth = planeTileDataWidth / dataPointsPerWorldUnit;
+        float planeTileWorldHeight = planeTileDataHeight / dataPointsPerWorldUnit;
+
+        float tilesX = width / planeTileDataWidth;
+        float tilesY = height / planeTileDataHeight;
 
         map.MapTiles = new MapTile[(int)tilesX, (int)tilesY];
 
@@ -56,13 +62,13 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = 0; y < tilesY; y++)
             {
-                Vector2Int startPoint = new Vector2Int(x * (int)planeTileWidth, y * (int)planeTileHeight);
-                Vector2Int endPoint = new Vector2Int((x + 1) * (int)planeTileWidth, (y + 1) * (int)planeTileHeight);
-                map.MapTiles[x, y] = Instantiate(map.MapTilePrefab, new Vector3(x * planeTileWidth, 0, y * planeTileHeight), Quaternion.identity, map.transform);
+                Vector2Int startPoint = new Vector2Int(x * (int)planeTileDataWidth, y * (int)planeTileDataHeight);
+                Vector2Int endPoint = new Vector2Int((x + 1) * (int)planeTileDataWidth, (y + 1) * (int)planeTileDataHeight);
+                map.MapTiles[x, y] = Instantiate(map.MapTilePrefab, new Vector3(x * planeTileWorldWidth, 0, y * planeTileWorldHeight), Quaternion.identity, map.transform);
                 map.MapTiles[x, y].StartPoint = startPoint;
                 map.MapTiles[x, y].EndPoint = endPoint;
-                map.MapTiles[x, y].PlaneMesh.mesh = CreatePlane(planeTileWidth, planeTileHeight, (int)planeTileWidth - 1, (int)planeTileHeight - 1);
-                ModifyVertices(map, map.MapTiles[x, y].PlaneMesh.mesh, startPoint, endPoint, 1);
+                map.MapTiles[x, y].PlaneMesh.mesh = CreatePlane(planeTileWorldWidth, planeTileWorldHeight, (int)(planeTileDataWidth / dataPointsPerVertex), (int)(planeTileDataHeight / dataPointsPerVertex));
+                ModifyVertices(map, map.MapTiles[x, y].PlaneMesh.mesh, startPoint, endPoint);
             }
         }
 
@@ -75,18 +81,19 @@ public class MapGenerator : MonoBehaviour
         map.SetMapMode(MapModes.Normal);
     }
 
-    public Mesh CreatePlane(float width, float height, int widthSegments, int heightSegments)
+    public Mesh CreatePlane(float worldWidth, float worldHeight, int verticesX, int verticesZ)
     {
         Mesh mesh = new Mesh();
 
-        int verticesX = widthSegments + 1;
-        int verticesZ = heightSegments + 1;
+        int xDataPoints = verticesX - 1;
+        int yDataPoints = verticesZ - 1;
+
         Vector3[] vertices = new Vector3[verticesX * verticesZ];
         Vector2[] uv = new Vector2[vertices.Length];
-        int[] triangles = new int[widthSegments * heightSegments * 6];
+        int[] triangles = new int[xDataPoints * yDataPoints * 6];
 
-        float xStep = width / widthSegments;
-        float zStep = height / heightSegments;
+        float xStep = worldWidth / xDataPoints;
+        float zStep = worldHeight / yDataPoints;
 
         // Generate vertices and UVs
         int vertIndex = 0;
@@ -94,19 +101,19 @@ public class MapGenerator : MonoBehaviour
         {
             for (int x = 0; x < verticesX; x++)
             {
-                float xPos = x * xStep - width / 2;
-                float zPos = z * zStep - height / 2;
+                float xPos = x * xStep - worldWidth / 2;
+                float zPos = z * zStep - worldHeight / 2;
                 vertices[vertIndex] = new Vector3(xPos, 0, zPos);
-                uv[vertIndex] = new Vector2((float)x / widthSegments, (float)z / heightSegments);
+                uv[vertIndex] = new Vector2((float)x / xDataPoints, (float)z / yDataPoints);
                 vertIndex++;
             }
         }
 
         // Generate triangles
         int triIndex = 0;
-        for (int z = 0; z < heightSegments; z++)
+        for (int z = 0; z < yDataPoints; z++)
         {
-            for (int x = 0; x < widthSegments; x++)
+            for (int x = 0; x < xDataPoints; x++)
             {
                 int topLeft = z * verticesX + x;
                 int bottomLeft = (z + 1) * verticesX + x;
@@ -130,21 +137,34 @@ public class MapGenerator : MonoBehaviour
         return mesh;
     }
 
-    void ModifyVertices(Map map, Mesh mesh, Vector2Int startPoint, Vector2Int endPoint, int resolution)
+    void ModifyVertices(Map map, Mesh mesh, Vector2Int startPoint, Vector2Int endPoint)
     {
-        float heightScale = 10f;
+        float heightScale = 1f;
 
         Vector3[] vertices = mesh.vertices;
+        float vertexDimension = Mathf.Sqrt(vertices.Length);
 
-        for (int z = 0; z < endPoint.y - startPoint.y; z++)
+        // Calculate the scaling factors to map heightmap data to mesh vertices
+        float xScale = (float)(endPoint.x - startPoint.x) / vertexDimension;
+        float zScale = (float)(endPoint.y - startPoint.y) / vertexDimension;
+
+        for (int i = 0; i < vertices.Length; i++)
         {
-            for (int x = 0; x < endPoint.x - startPoint.x; x++)
-            {
-                int index = z * (endPoint.x - startPoint.x) + x; // Calculate the vertex index
-                Vector3 vertex = vertices[index];
-                vertex.y = map.GetHeight((x + startPoint.x) * resolution, (z + startPoint.y) * resolution) * heightScale;
-                vertices[index] = vertex; // Assign the updated vertex
-            }
+            Vector3 vertex = vertices[i];
+
+            // Map the vertex index "i" to grid coordinates in the vertex grid
+            int vertexX = i % (int)vertexDimension; // Column index
+            int vertexZ = i / (int)vertexDimension; // Row index
+
+            // Map the vertex grid coordinates to heightmap coordinates
+            int mapX = Mathf.Clamp(startPoint.x + Mathf.RoundToInt((float)vertexX / (vertexDimension - 1) * (endPoint.x - startPoint.x)), startPoint.x, endPoint.x - 1);
+            int mapZ = Mathf.Clamp(startPoint.y + Mathf.RoundToInt((float)vertexZ / (vertices.Length / vertexDimension - 1) * (endPoint.y - startPoint.y)), startPoint.y, endPoint.y - 1);
+
+            // Update the vertex height based on the heightmap
+            vertex.y = map.GetHeight(mapX, mapZ) * heightScale;
+
+            // Assign the modified vertex back to the array
+            vertices[i] = vertex;
         }
 
         // Assign the modified vertices back to the mesh
