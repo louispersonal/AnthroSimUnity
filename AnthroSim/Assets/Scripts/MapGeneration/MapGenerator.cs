@@ -47,7 +47,7 @@ public class MapGenerator : MonoBehaviour
         float planeTileDataWidth = 100;
         float planeTileDataHeight = 100;
 
-        float dataPointsPerWorldUnit = 10;
+        float dataPointsPerWorldUnit = 1;
         float dataPointsPerVertex = 0.5f;
 
         float planeTileWorldWidth = planeTileDataWidth / dataPointsPerWorldUnit;
@@ -139,7 +139,7 @@ public class MapGenerator : MonoBehaviour
 
     void ModifyVertices(Map map, Mesh mesh, Vector2Int startPoint, Vector2Int endPoint)
     {
-        float heightScale = 1f;
+        float heightScale = 10f;
 
         Vector3[] vertices = mesh.vertices;
         float vertexDimension = Mathf.Sqrt(vertices.Length);
