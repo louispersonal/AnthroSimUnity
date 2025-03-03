@@ -1255,7 +1255,6 @@ MonoBehaviour:
   _map: {fileID: 1100144601}
   _mapWidth: 1000
   _mapHeight: 1000
-  _mapResolution: 1
 --- !u!1 &1540552382
 GameObject:
   m_ObjectHideFlags: 0
