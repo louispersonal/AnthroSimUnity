@@ -1,26 +1,43 @@
-using UnityEngine.Audio;
-using System;
 using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
-    public Sound[] sounds;
+    public AudioSource audioSource; // Assign in Inspector or fetch in Awake()
+    public AudioClip[] playlist; // Assign tracks in Inspector
+    private int currentTrackIndex = 0;
 
-    // Start is called before the first frame update
-    void Awake()
+    void Start()
     {
-        foreach(Sound s in sounds)
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
+
+        if (playlist.Length > 0)
         {
-            s.source = gameObject.AddComponent<AudioSource>();
-            s.source.clip = s.clip;
-            s.source.volume = s.volume;
-            s.source.pitch = s.pitch;
+            PlayTrack(currentTrackIndex);
         }
     }
 
-    public void Play(string name)
+    void Update()
     {
-        Sound s = Array.Find(sounds, s => s.name == name);
-        s.source.Play();
+        if (!audioSource.isPlaying) // When track ends
+        {
+            PlayNextTrack();
+        }
+    }
+
+    public void PlayTrack(int index)
+    {
+        if (index >= 0 && index < playlist.Length)
+        {
+            currentTrackIndex = index;
+            audioSource.clip = playlist[index];
+            audioSource.Play();
+        }
+    }
+
+    public void PlayNextTrack()
+    {
+        currentTrackIndex = (currentTrackIndex + 1) % playlist.Length; // Loop back to start
+        PlayTrack(currentTrackIndex);
     }
 }
