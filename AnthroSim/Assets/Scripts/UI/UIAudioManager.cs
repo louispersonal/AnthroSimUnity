@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class UIAudioManager : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler
+public class UIAudioManager : MonoBehaviour
 {
     public AudioClip hoverSound;
     public AudioClip clickSound;
@@ -10,17 +10,17 @@ public class UIAudioManager : MonoBehaviour, IPointerEnterHandler, IPointerClick
 
     void Start()
     {
-        // Get or add an AudioSource component
-        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource = gameObject.GetComponent<AudioSource>();
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
+    public void PlayHoverSound()
     {
         if (hoverSound != null)
             audioSource.PlayOneShot(hoverSound);
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+
+    public void PlayClickSound()
     {
         if (clickSound != null)
             audioSource.PlayOneShot(clickSound);
