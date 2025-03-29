@@ -5,9 +5,12 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuController : MonoBehaviour
 {
+    [SerializeField]
+    private GameObject _newGameSubMenu;
+
     public void OnNewGameSelected()
     {
-        GameManager.Instance.LoadLoadingScreen();
+        ToggleNewGameSubMenu();
     }
 
     public void OnLoadGameSelected()
@@ -23,5 +26,20 @@ public class MainMenuController : MonoBehaviour
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
+    }
+
+    public void ToggleNewGameSubMenu()
+    {
+        _newGameSubMenu.SetActive(!_newGameSubMenu.activeSelf);
+    }
+
+    public void OnNewMapSelected()
+    {
+
+    }
+
+    public void OnSavedMapSelected()
+    {
+
     }
 }

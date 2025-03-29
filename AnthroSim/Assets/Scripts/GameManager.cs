@@ -13,7 +13,6 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);  // Keep GameManager alive across scenes
             // Initially load the Main Menu scene
             LoadMainMenu();
             LoadMusic();
