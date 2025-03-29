@@ -33,4 +33,48 @@ public class GameManager : MonoBehaviour
     {
         SceneManager.LoadScene("MusicScene", LoadSceneMode.Additive);
     }
+    public void LoadLoadingScreen()
+    {
+        StartCoroutine(LoadLoadingScreenAsync());
+    }
+
+    private IEnumerator LoadLoadingScreenAsync()
+    {
+        // Load the loading screen additively
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("LoadingScreenScene", LoadSceneMode.Additive);
+        while (!asyncLoad.isDone)
+        {
+            yield return null;
+        }
+
+        // After the loading screen is done loading, load the main game scene
+        UnloadMainMenuScene();
+        LoadMainScene();
+    }
+
+    private void UnloadMainMenuScene()
+    {
+        SceneManager.UnloadSceneAsync("MainMenuScene");
+    }
+
+    private void LoadMainScene()
+    {
+        StartCoroutine(LoadMainSceneAsync());
+    }
+
+    private IEnumerator LoadMainSceneAsync()
+    {
+        // Start loading the main game scene in the background
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("MainGameScene", LoadSceneMode.Additive);
+        // Small wait so we can see if the loading screen is working
+        yield return new WaitForSeconds(5f);
+        while (!asyncLoad.isDone)
+        {
+            // You can update the loading screen UI here, if needed (e.g., a progress bar)
+            yield return null;
+        }
+
+        // Unload the loading screen once everything is done
+        SceneManager.UnloadSceneAsync("LoadingScreenScene");
+    }
 }

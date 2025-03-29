@@ -14,4 +14,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MusicScene.unity
     guid: 1ccb061acfd6bea449feee61746e80c0
+  - enabled: 1
+    path: Assets/Scenes/LoadingScreenScene.unity
+    guid: 3bdb4eb17af156046820782cf485cdc5
+  - enabled: 1
+    path: Assets/Scenes/MainGameScene.unity
+    guid: 8ed298b3b9a45c14a86b9bf5db585c44
   m_configObjects: {}
